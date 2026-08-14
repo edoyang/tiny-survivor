@@ -1,5 +1,21 @@
 {
   "camera": { "stiffness": 8 },
+  "heroRig": {
+    "idleBobHeight": 2,
+    "idleBobHz": 1.5,
+    "walkBobHeight": 3,
+    "walkBobHz": 4,
+    "walkSquashAmount": 0.06,
+    "weaponWalkSwingDeg": 6,
+    "attackSwingDeg": 50,
+    "attackOutSeconds": 0.06,
+    "attackReturnSeconds": 0.25,
+    "weaponGripOffsetX": 6,
+    "weaponGripOffsetY": 3,
+    "weaponPivotX": 8,
+    "weaponPivotY": 13,
+    "priestWandTint": "#ffd166"
+  },
   "render": { "worldScale": 3 },
   "joystick": { "radius": 60, "knobRadius": 22, "deadZone": 0.1 },
   "floor": {

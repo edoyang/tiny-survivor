@@ -1,10 +1,19 @@
+import classes from './data/classes.json' with { type: 'json' };
 import { createPool, poolClear, type Pool } from './pool.ts';
 import { createRng, type Rng } from './rng.ts';
 import { createSpatialHash, type SpatialHash } from './spatial.ts';
 
 export type Vec2 = { x: number; y: number };
 
+export type ClassDef = (typeof classes)[number];
+
+export const CLASS_WIZARD = 0;
+export const CLASS_KNIGHT = 1;
+export const CLASS_DWARF = 2;
+export const CLASS_PRIEST = 3;
+
 export type Player = {
+  classId: number;
   pos: Vec2;
   prevX: number;
   prevY: number;
@@ -15,6 +24,11 @@ export type Player = {
   hp: number;
   maxHp: number;
   iFrames: number;
+  walking: boolean;
+  bobPhase: number;
+  attackCooldown: number;
+  attackTimer: number;
+  attackAnimT: number;
 };
 
 export type Camera = {
@@ -41,8 +55,6 @@ export type Enemy = {
 };
 
 export const ENEMY_CAP = 256;
-export const PLAYER_BASE_SPEED = 70;
-export const PLAYER_BASE_HP = 100;
 export const PLAYER_RADIUS = 6;
 export const SPATIAL_CELL_SIZE = 32;
 
@@ -83,22 +95,29 @@ function createEnemy(): Enemy {
   };
 }
 
-function createPlayer(): Player {
+function createPlayer(classId: number): Player {
+  const cls = classes[classId];
   return {
+    classId,
     pos: { x: 0, y: 0 },
     prevX: 0,
     prevY: 0,
     moveInput: { x: 0, y: 0 },
     facing: 1,
-    moveSpeed: PLAYER_BASE_SPEED,
+    moveSpeed: cls.moveSpeed,
     radius: PLAYER_RADIUS,
-    hp: PLAYER_BASE_HP,
-    maxHp: PLAYER_BASE_HP,
+    hp: cls.maxHp,
+    maxHp: cls.maxHp,
     iFrames: 0,
+    walking: false,
+    bobPhase: 0,
+    attackCooldown: cls.cooldown,
+    attackTimer: cls.cooldown,
+    attackAnimT: 1000,
   };
 }
 
-export function createWorld(seed: number): World {
+export function createWorld(seed: number, classId: number = CLASS_KNIGHT): World {
   return {
     seed,
     rng: createRng(seed),
@@ -106,7 +125,7 @@ export function createWorld(seed: number): World {
     time: 0,
     accumulator: 0,
     nextEntityId: 1,
-    player: createPlayer(),
+    player: createPlayer(classId),
     camera: { pos: { x: 0, y: 0 }, prevX: 0, prevY: 0 },
     viewWidth: DEFAULT_VIEW_WIDTH,
     viewHeight: DEFAULT_VIEW_HEIGHT,
@@ -115,14 +134,16 @@ export function createWorld(seed: number): World {
   };
 }
 
-export function resetWorld(world: World, seed: number): void {
+export function resetWorld(world: World, seed: number, classId: number = CLASS_KNIGHT): void {
   world.seed = seed;
   world.rng = createRng(seed);
   world.tick = 0;
   world.time = 0;
   world.accumulator = 0;
   world.nextEntityId = 1;
+  const cls = classes[classId];
   const p = world.player;
+  p.classId = classId;
   p.pos.x = 0;
   p.pos.y = 0;
   p.prevX = 0;
@@ -130,11 +151,16 @@ export function resetWorld(world: World, seed: number): void {
   p.moveInput.x = 0;
   p.moveInput.y = 0;
   p.facing = 1;
-  p.moveSpeed = PLAYER_BASE_SPEED;
+  p.moveSpeed = cls.moveSpeed;
   p.radius = PLAYER_RADIUS;
-  p.hp = PLAYER_BASE_HP;
-  p.maxHp = PLAYER_BASE_HP;
+  p.hp = cls.maxHp;
+  p.maxHp = cls.maxHp;
   p.iFrames = 0;
+  p.walking = false;
+  p.bobPhase = 0;
+  p.attackCooldown = cls.cooldown;
+  p.attackTimer = cls.cooldown;
+  p.attackAnimT = 1000;
   world.camera.pos.x = 0;
   world.camera.pos.y = 0;
   world.camera.prevX = 0;

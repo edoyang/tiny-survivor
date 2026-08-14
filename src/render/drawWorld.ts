@@ -1,8 +1,11 @@
 import {
+  BlendMode,
   FilterMode,
+  MipmapMode,
   Skia,
   type SkCanvas,
   type SkHostRect,
+  type SkImage,
   type SkPaint,
   type SkRSXform,
   type SkRect,
@@ -11,7 +14,14 @@ import tuning from '../game/data/tuning.json' with { type: 'json' };
 import type { World } from '../game/state.ts';
 import type { SpriteAtlas } from './atlas.ts';
 import { floorTileAt, generateFloorLayout, TILE_SIZE } from './floor.ts';
+import { computeHeroPose, createHeroPose, type HeroPose } from './hero.ts';
 import type { JoystickState } from './joystick.ts';
+
+export type HeroImages = {
+  body: SkImage;
+  weapon: SkImage;
+  tinted: boolean;
+};
 
 export type RenderContext = {
   atlas: SpriteAtlas;
@@ -26,11 +36,17 @@ export type RenderContext = {
   floorSrcs: SkRect[];
   floorXforms: SkRSXform[];
   spritePaint: SkPaint;
-  playerPaint: SkPaint;
   joystickBasePaint: SkPaint;
   joystickKnobPaint: SkPaint;
   scratchRect: SkHostRect;
   bounds: SkHostRect;
+  heroBody: SkImage;
+  heroWeapon: SkImage;
+  weaponPaint: SkPaint;
+  src16: SkRect;
+  heroBodyDst: SkRect;
+  weaponDst: SkRect;
+  heroPose: HeroPose;
 };
 
 const NEAREST = { filter: FilterMode.Nearest };
@@ -39,6 +55,7 @@ export function createRenderContext(
   atlas: SpriteAtlas,
   screenWidth: number,
   screenHeight: number,
+  hero: HeroImages,
 ): RenderContext {
   const scale = tuning.render.worldScale;
   const viewWidth = screenWidth / scale;
@@ -54,8 +71,13 @@ export function createRenderContext(
     floorXforms[i] = Skia.RSXform(0, 0, 0, 0);
   }
   const spritePaint = Skia.Paint();
-  const playerPaint = Skia.Paint();
-  playerPaint.setColor(Skia.Color('#e8e4d8'));
+  const weaponPaint = Skia.Paint();
+  if (hero.tinted) {
+    weaponPaint.setColorFilter(
+      Skia.ColorFilter.MakeBlend(Skia.Color(tuning.heroRig.priestWandTint), BlendMode.Modulate),
+    );
+  }
+  const rig = tuning.heroRig;
   const joystickBasePaint = Skia.Paint();
   joystickBasePaint.setColor(Skia.Color('#ffffff22'));
   const joystickKnobPaint = Skia.Paint();
@@ -73,11 +95,17 @@ export function createRenderContext(
     floorSrcs,
     floorXforms,
     spritePaint,
-    playerPaint,
     joystickBasePaint,
     joystickKnobPaint,
     scratchRect: Skia.XYWHRect(0, 0, 1, 1),
     bounds: Skia.XYWHRect(0, 0, screenWidth, screenHeight),
+    heroBody: hero.body,
+    heroWeapon: hero.weapon,
+    weaponPaint,
+    src16: Skia.XYWHRect(0, 0, 16, 16),
+    heroBodyDst: Skia.XYWHRect(-8, -8, 16, 16),
+    weaponDst: Skia.XYWHRect(-rig.weaponPivotX, -rig.weaponPivotY, 16, 16),
+    heroPose: createHeroPose(),
   };
 }
 
@@ -127,8 +155,30 @@ export function drawWorld(
 
   const px = lerp(world.player.prevX, world.player.pos.x, alpha);
   const py = lerp(world.player.prevY, world.player.pos.y, alpha);
-  ctx.scratchRect.setXYWH(px - 8, py - 8, 16, 16);
-  canvas.drawRect(ctx.scratchRect, ctx.playerPaint);
+  computeHeroPose(world, ctx.heroPose);
+  const rig = tuning.heroRig;
+  canvas.save();
+  canvas.translate(px, py + ctx.heroPose.bobOffset);
+  canvas.scale(world.player.facing * ctx.heroPose.scaleX, ctx.heroPose.scaleY);
+  canvas.drawImageRectOptions(
+    ctx.heroBody,
+    ctx.src16,
+    ctx.heroBodyDst,
+    FilterMode.Nearest,
+    MipmapMode.None,
+    ctx.spritePaint,
+  );
+  canvas.translate(rig.weaponGripOffsetX, rig.weaponGripOffsetY);
+  canvas.rotate(ctx.heroPose.weaponAngleDeg, 0, 0);
+  canvas.drawImageRectOptions(
+    ctx.heroWeapon,
+    ctx.src16,
+    ctx.weaponDst,
+    FilterMode.Nearest,
+    MipmapMode.None,
+    ctx.weaponPaint,
+  );
+  canvas.restore();
 
   canvas.restore();
 

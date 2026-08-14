@@ -1,0 +1,46 @@
+[
+  {
+    "id": "wizard",
+    "name": "Wizard",
+    "weapon": "wand",
+    "weaponTinted": false,
+    "hidesWeaponOnThrow": false,
+    "moveSpeed": 70,
+    "maxHp": 90,
+    "cooldown": 1.1,
+    "blurb": "Hurls fireballs that explode on impact."
+  },
+  {
+    "id": "knight",
+    "name": "Knight",
+    "weapon": "sword",
+    "weaponTinted": false,
+    "hidesWeaponOnThrow": true,
+    "moveSpeed": 75,
+    "maxHp": 120,
+    "cooldown": 0.9,
+    "blurb": "Throws homing swords that pierce through enemies."
+  },
+  {
+    "id": "dwarf",
+    "name": "Dwarf",
+    "weapon": "axe",
+    "weaponTinted": false,
+    "hidesWeaponOnThrow": true,
+    "moveSpeed": 72,
+    "maxHp": 110,
+    "cooldown": 1.6,
+    "blurb": "Hurls an axe that spins in place, then flies back."
+  },
+  {
+    "id": "priest",
+    "name": "Priest",
+    "weapon": "wand",
+    "weaponTinted": true,
+    "hidesWeaponOnThrow": false,
+    "moveSpeed": 68,
+    "maxHp": 100,
+    "cooldown": 1.2,
+    "blurb": "An orb circles him while missiles seek the nearest foe."
+  }
+]
