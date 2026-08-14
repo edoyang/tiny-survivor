@@ -42,3 +42,19 @@ None of this can be judged from code; every number is a starting guess.
   blend). Guessed; any hex colour works there.
 - **Attack cadence** per class: `cooldown` in `data/classes.json`
   (wizard 1.1 s, knight 0.9 s, dwarf 1.6 s, priest 1.2 s). Guessed.
+
+## Phase 4 — enemies and pickups
+
+- **Monster stats** in `data/monsters.json` are all guesses: slime 10hp/22spd/4dmg,
+  fly 6/34/3, bunny 14/28/5, monster 30/18/8, xp 1/1/2/3. If early minutes feel
+  spongy, cut slime and fly hp first.
+- **`player.iFrameSeconds`** = 0.4. Caps damage intake at ~2.5 hits/s in a
+  pile-up. Longer feels safer, shorter deadlier.
+- **`enemies.separationStrength`** = 40. How hard overlapping enemies push
+  apart. Too high and crowds jitter; too low and they stack into one pixel.
+- **`enemies.animFps`** = 6. Walk-cycle speed of the 3-frame monster loop.
+- **`pickup.radius`** = 40, **`pickup.magnetSpeed`** = 140,
+  **`pickup.collectRadius`** = 6. Gem vacuum feel. If collecting feels like a
+  chore, raise radius to 55.
+- **`pickup.gemColor`** = #5ee9a0 (there is no gem sprite in the pack; gems are
+  a 6 px drawn diamond, see BLOCKERS).

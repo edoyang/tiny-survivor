@@ -11,9 +11,10 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useSharedValue } from 'react-native-reanimated';
 import classes from '../game/data/classes.json' with { type: 'json' };
 import tuning from '../game/data/tuning.json' with { type: 'json' };
+import { MONSTER_SPRITES } from '../game/entities/monsterTypes.ts';
 import { CLASS_KNIGHT, createWorld } from '../game/state.ts';
 import { accumulate, interpolationAlpha } from '../game/step.ts';
-import { buildAtlas } from './atlas.ts';
+import { buildAtlas, makeGemImage, type AtlasEntry } from './atlas.ts';
 import { createRenderContext, drawWorld } from './drawWorld.ts';
 import { createJoystick, joystickInput } from './joystick.ts';
 
@@ -29,6 +30,33 @@ const WEAPON_IMAGES: Record<string, number> = {
   sword: require('@/assets/sprites/Equipment/sword.png'),
   axe: require('@/assets/sprites/Equipment/axe.png'),
 };
+
+const MONSTER_IMAGES: number[][] = [
+  [
+    require('@/assets/sprites/M_Slime/tile_0000.png'),
+    require('@/assets/sprites/M_Slime/tile_0001.png'),
+    require('@/assets/sprites/M_Slime/tile_0002.png'),
+    require('@/assets/sprites/M_Slime/tile_0003.png'),
+  ],
+  [
+    require('@/assets/sprites/M_Fly/tile_0004.png'),
+    require('@/assets/sprites/M_Fly/tile_0005.png'),
+    require('@/assets/sprites/M_Fly/tile_0006.png'),
+    require('@/assets/sprites/M_Fly/tile_0007.png'),
+  ],
+  [
+    require('@/assets/sprites/M_Bunny/tile_0008.png'),
+    require('@/assets/sprites/M_Bunny/tile_0009.png'),
+    require('@/assets/sprites/M_Bunny/tile_0010.png'),
+    require('@/assets/sprites/M_Bunny/tile_0011.png'),
+  ],
+  [
+    require('@/assets/sprites/M_Monster/tile_0012.png'),
+    require('@/assets/sprites/M_Monster/tile_0013.png'),
+    require('@/assets/sprites/M_Monster/tile_0014.png'),
+    require('@/assets/sprites/M_Monster/tile_0015.png'),
+  ],
+];
 
 const CLASS_ID = CLASS_KNIGHT;
 
@@ -48,22 +76,54 @@ export function GameCanvas() {
   const cls = classes[CLASS_ID];
   const heroBody = useImage(HERO_IMAGES[cls.id]);
   const heroWeapon = useImage(WEAPON_IMAGES[cls.weapon]);
+  const slime0 = useImage(MONSTER_IMAGES[0][0]);
+  const slime1 = useImage(MONSTER_IMAGES[0][1]);
+  const slime2 = useImage(MONSTER_IMAGES[0][2]);
+  const slime3 = useImage(MONSTER_IMAGES[0][3]);
+  const fly0 = useImage(MONSTER_IMAGES[1][0]);
+  const fly1 = useImage(MONSTER_IMAGES[1][1]);
+  const fly2 = useImage(MONSTER_IMAGES[1][2]);
+  const fly3 = useImage(MONSTER_IMAGES[1][3]);
+  const bunny0 = useImage(MONSTER_IMAGES[2][0]);
+  const bunny1 = useImage(MONSTER_IMAGES[2][1]);
+  const bunny2 = useImage(MONSTER_IMAGES[2][2]);
+  const bunny3 = useImage(MONSTER_IMAGES[2][3]);
+  const monster0 = useImage(MONSTER_IMAGES[3][0]);
+  const monster1 = useImage(MONSTER_IMAGES[3][1]);
+  const monster2 = useImage(MONSTER_IMAGES[3][2]);
+  const monster3 = useImage(MONSTER_IMAGES[3][3]);
 
   useEffect(() => {
+    const monsterFrames = [
+      [slime0, slime1, slime2, slime3],
+      [fly0, fly1, fly2, fly3],
+      [bunny0, bunny1, bunny2, bunny3],
+      [monster0, monster1, monster2, monster3],
+    ];
     if (
       tile42 === null ||
       tile48 === null ||
       tile49 === null ||
       heroBody === null ||
-      heroWeapon === null
+      heroWeapon === null ||
+      monsterFrames.some((frames) => frames.some((img) => img === null))
     ) {
       return;
     }
-    const atlas = buildAtlas([
+    const entries: AtlasEntry[] = [
       { name: 'tile_0042', image: tile42 },
       { name: 'tile_0048', image: tile48 },
       { name: 'tile_0049', image: tile49 },
-    ]);
+      { name: 'gem', image: makeGemImage(tuning.pickup.gemColor) },
+    ];
+    for (let type = 0; type < monsterFrames.length; type++) {
+      for (let frame = 0; frame < 4; frame++) {
+        const image = monsterFrames[type][frame];
+        if (image === null) return;
+        entries.push({ name: `${MONSTER_SPRITES[type]}_${frame}`, image, withFlipped: true });
+      }
+    }
+    const atlas = buildAtlas(entries);
     const ctx = createRenderContext(atlas, width, height, {
       body: heroBody,
       weapon: heroWeapon,
@@ -88,7 +148,34 @@ export function GameCanvas() {
     };
     raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
-  }, [tile42, tile48, tile49, heroBody, heroWeapon, cls, width, height, joystick, picture]);
+  }, [
+    tile42,
+    tile48,
+    tile49,
+    heroBody,
+    heroWeapon,
+    slime0,
+    slime1,
+    slime2,
+    slime3,
+    fly0,
+    fly1,
+    fly2,
+    fly3,
+    bunny0,
+    bunny1,
+    bunny2,
+    bunny3,
+    monster0,
+    monster1,
+    monster2,
+    monster3,
+    cls,
+    width,
+    height,
+    joystick,
+    picture,
+  ]);
 
   const pan = Gesture.Pan()
     .runOnJS(true)

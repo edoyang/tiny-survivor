@@ -11,6 +11,7 @@ const TEST_STATS: EnemyStats = {
   speed: 22,
   damage: 4,
   attackInterval: 1,
+  xp: 1,
   radius: 8,
 };
 
@@ -92,7 +93,7 @@ function worldDigest(world: World): string {
   ];
   for (let i = 0; i < world.enemies.count; i++) {
     const e = world.enemies.items[i];
-    parts.push(e.id, e.pos.x, e.pos.y, e.hp, e.attackTimer, e.animPhase);
+    parts.push(e.id, e.pos.x, e.pos.y, e.hp, e.attackTimerTicks, e.animPhase);
   }
   return parts.join(',');
 }

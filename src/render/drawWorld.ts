@@ -11,8 +11,9 @@ import {
   type SkRect,
 } from '@shopify/react-native-skia';
 import tuning from '../game/data/tuning.json' with { type: 'json' };
-import type { World } from '../game/state.ts';
-import type { SpriteAtlas } from './atlas.ts';
+import { MONSTER_SPRITES } from '../game/entities/monsterTypes.ts';
+import { ENEMY_CAP, GEM_CAP, type World } from '../game/state.ts';
+import { flippedName, type SpriteAtlas } from './atlas.ts';
 import { floorTileAt, generateFloorLayout, TILE_SIZE } from './floor.ts';
 import { computeHeroPose, createHeroPose, type HeroPose } from './hero.ts';
 import type { JoystickState } from './joystick.ts';
@@ -47,7 +48,15 @@ export type RenderContext = {
   heroBodyDst: SkRect;
   weaponDst: SkRect;
   heroPose: HeroPose;
+  monsterRects: SkRect[][][];
+  gemRect: SkRect;
+  enemySrcs: SkRect[];
+  enemyXforms: SkRSXform[];
+  gemSrcs: SkRect[];
+  gemXforms: SkRSXform[];
 };
+
+export const MONSTER_WALK_FRAMES = 3;
 
 const NEAREST = { filter: FilterMode.Nearest };
 
@@ -78,6 +87,27 @@ export function createRenderContext(
     );
   }
   const rig = tuning.heroRig;
+  const monsterRects: SkRect[][][] = MONSTER_SPRITES.map((sprites) => {
+    const frames: SkRect[][] = [];
+    for (let f = 0; f < MONSTER_WALK_FRAMES; f++) {
+      const name = `${sprites}_${f}`;
+      frames.push([atlas.rects[flippedName(name)], atlas.rects[name]]);
+    }
+    return frames;
+  });
+  const gemRect = atlas.rects.gem;
+  const enemySrcs: SkRect[] = new Array(ENEMY_CAP);
+  const enemyXforms: SkRSXform[] = new Array(ENEMY_CAP);
+  for (let i = 0; i < ENEMY_CAP; i++) {
+    enemySrcs[i] = gemRect;
+    enemyXforms[i] = Skia.RSXform(0, 0, 0, 0);
+  }
+  const gemSrcs: SkRect[] = new Array(GEM_CAP);
+  const gemXforms: SkRSXform[] = new Array(GEM_CAP);
+  for (let i = 0; i < GEM_CAP; i++) {
+    gemSrcs[i] = gemRect;
+    gemXforms[i] = Skia.RSXform(0, 0, 0, 0);
+  }
   const joystickBasePaint = Skia.Paint();
   joystickBasePaint.setColor(Skia.Color('#ffffff22'));
   const joystickKnobPaint = Skia.Paint();
@@ -106,6 +136,12 @@ export function createRenderContext(
     heroBodyDst: Skia.XYWHRect(-8, -8, 16, 16),
     weaponDst: Skia.XYWHRect(-rig.weaponPivotX, -rig.weaponPivotY, 16, 16),
     heroPose: createHeroPose(),
+    monsterRects,
+    gemRect,
+    enemySrcs,
+    enemyXforms,
+    gemSrcs,
+    gemXforms,
   };
 }
 
@@ -147,6 +183,51 @@ export function drawWorld(
     ctx.atlas.image,
     ctx.floorSrcs,
     ctx.floorXforms,
+    ctx.spritePaint,
+    undefined,
+    undefined,
+    NEAREST,
+  );
+
+  const gems = world.gems;
+  for (let i = 0; i < gems.count; i++) {
+    const gem = gems.items[i];
+    const gx = lerp(gem.prevX, gem.pos.x, alpha);
+    const gy = lerp(gem.prevY, gem.pos.y, alpha);
+    ctx.gemSrcs[i] = ctx.gemRect;
+    ctx.gemXforms[i].set(1, 0, gx - 3, gy - 3);
+  }
+  for (let i = gems.count; i < GEM_CAP; i++) {
+    ctx.gemXforms[i].set(0, 0, 0, 0);
+  }
+  canvas.drawAtlas(
+    ctx.atlas.image,
+    ctx.gemSrcs,
+    ctx.gemXforms,
+    ctx.spritePaint,
+    undefined,
+    undefined,
+    NEAREST,
+  );
+
+  const enemies = world.enemies;
+  const animFps = tuning.enemies.animFps;
+  for (let i = 0; i < enemies.count; i++) {
+    const e = enemies.items[i];
+    const ex = lerp(e.prevX, e.pos.x, alpha);
+    const ey = lerp(e.prevY, e.pos.y, alpha);
+    const frame =
+      Math.floor(world.time * animFps + e.animPhase * MONSTER_WALK_FRAMES) % MONSTER_WALK_FRAMES;
+    ctx.enemySrcs[i] = ctx.monsterRects[e.type][frame][e.facing === 1 ? 1 : 0];
+    ctx.enemyXforms[i].set(1, 0, ex - 12, ey - 12);
+  }
+  for (let i = enemies.count; i < ENEMY_CAP; i++) {
+    ctx.enemyXforms[i].set(0, 0, 0, 0);
+  }
+  canvas.drawAtlas(
+    ctx.atlas.image,
+    ctx.enemySrcs,
+    ctx.enemyXforms,
     ctx.spritePaint,
     undefined,
     undefined,

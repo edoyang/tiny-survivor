@@ -13,6 +13,14 @@ Every place one reading of the spec was picked over another.
   directly, so this adds zero dependencies. Imports inside `src/game/` use explicit
   `.ts` extensions (enabled via `allowImportingTsExtensions`) so the same files run
   under both Metro and bare Node.
+- **Attack timers and i-frames are integer tick counters, not float seconds.**
+  Accumulated 1/60 floats made a 1.0 s interval land on 61 ticks and wobble by
+  a tick between enemies. Integer ticks make "two staggered enemies stay
+  staggered forever" exact and testable. `attackInterval` in monsters.json
+  stays in seconds; it is converted once at spawn.
+- **When the gem pool (512) is full, new XP is credited directly to the player**
+  instead of being dropped or merged. No XP is ever lost; the only cost is a
+  missing visual gem in an already extremely dense scene.
 - **Skia installed as `@shopify/react-native-skia@2.6.2`** — the exact version pinned
   in Expo SDK 57's `bundledNativeModules.json`. `npx expo install` could not reach
   Expo's API from this environment, so the pin was read from the installed `expo`

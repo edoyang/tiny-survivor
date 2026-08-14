@@ -18,6 +18,9 @@
   },
   "render": { "worldScale": 3 },
   "joystick": { "radius": 60, "knobRadius": 22, "deadZone": 0.1 },
+  "enemies": { "separationStrength": 40, "animFps": 6 },
+  "player": { "iFrameSeconds": 0.4 },
+  "pickup": { "radius": 40, "magnetSpeed": 140, "collectRadius": 6, "gemColor": "#5ee9a0" },
   "floor": {
     "tiles": ["tile_0042", "tile_0048", "tile_0049"],
     "weights": [0.12, 0.72, 0.16]

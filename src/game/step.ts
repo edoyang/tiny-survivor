@@ -1,10 +1,11 @@
-import { rebuild } from './spatial.ts';
 import { updateHeroRig } from './systems/attacks.ts';
 import { updateCamera } from './systems/camera.ts';
+import { updateEnemies } from './systems/enemies.ts';
 import { movePlayer } from './systems/movement.ts';
-import type { World } from './state.ts';
+import { updateGems } from './systems/pickups.ts';
+import { FIXED_DT, type World } from './state.ts';
 
-export const FIXED_DT = 1 / 60;
+export { FIXED_DT };
 export const MAX_FRAME_SECONDS = 0.25;
 
 export function advance(world: World): void {
@@ -12,8 +13,9 @@ export function advance(world: World): void {
   world.time += FIXED_DT;
   movePlayer(world, FIXED_DT);
   updateHeroRig(world, FIXED_DT);
+  updateEnemies(world, FIXED_DT);
+  updateGems(world, FIXED_DT);
   updateCamera(world, FIXED_DT);
-  rebuild(world.enemyHash, world.enemies.items, world.enemies.count);
 }
 
 export function accumulate(world: World, frameSeconds: number): number {

@@ -1,5 +1,5 @@
 import { poolObtain } from '../pool.ts';
-import type { Enemy, World } from '../state.ts';
+import { FIXED_DT, type Enemy, type World } from '../state.ts';
 
 export type EnemyStats = {
   type: number;
@@ -7,6 +7,7 @@ export type EnemyStats = {
   speed: number;
   damage: number;
   attackInterval: number;
+  xp: number;
   radius: number;
 };
 
@@ -31,9 +32,10 @@ export function spawnEnemy(
   enemy.speed = stats.speed;
   enemy.radius = stats.radius;
   enemy.contactDamage = stats.damage;
-  enemy.attackInterval = stats.attackInterval;
-  enemy.attackTimer = 0;
+  enemy.attackIntervalTicks = Math.round(stats.attackInterval / FIXED_DT);
+  enemy.attackTimerTicks = 0;
   enemy.animPhase = animPhase;
   enemy.facing = 1;
+  enemy.xp = stats.xp;
   return enemy;
 }

@@ -1,0 +1,42 @@
+{
+  "slime": {
+    "hp": 10,
+    "speed": 22,
+    "damage": 4,
+    "attackInterval": 1.0,
+    "xp": 1,
+    "radius": 8,
+    "sprites": "M_Slime",
+    "frames": 4
+  },
+  "fly": {
+    "hp": 6,
+    "speed": 34,
+    "damage": 3,
+    "attackInterval": 1.0,
+    "xp": 1,
+    "radius": 7,
+    "sprites": "M_Fly",
+    "frames": 4
+  },
+  "bunny": {
+    "hp": 14,
+    "speed": 28,
+    "damage": 5,
+    "attackInterval": 1.0,
+    "xp": 2,
+    "radius": 8,
+    "sprites": "M_Bunny",
+    "frames": 4
+  },
+  "monster": {
+    "hp": 30,
+    "speed": 18,
+    "damage": 8,
+    "attackInterval": 1.0,
+    "xp": 3,
+    "radius": 9,
+    "sprites": "M_Monster",
+    "frames": 4
+  }
+}

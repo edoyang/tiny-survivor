@@ -23,7 +23,7 @@ export type Player = {
   radius: number;
   hp: number;
   maxHp: number;
-  iFrames: number;
+  iFrameTicks: number;
   walking: boolean;
   bobPhase: number;
   attackCooldown: number;
@@ -48,13 +48,23 @@ export type Enemy = {
   speed: number;
   radius: number;
   contactDamage: number;
-  attackInterval: number;
-  attackTimer: number;
+  attackIntervalTicks: number;
+  attackTimerTicks: number;
   animPhase: number;
   facing: number;
+  xp: number;
 };
 
+export type Gem = {
+  pos: Vec2;
+  prevX: number;
+  prevY: number;
+  value: number;
+};
+
+export const FIXED_DT = 1 / 60;
 export const ENEMY_CAP = 256;
+export const GEM_CAP = 512;
 export const PLAYER_RADIUS = 6;
 export const SPATIAL_CELL_SIZE = 32;
 
@@ -70,7 +80,10 @@ export type World = {
   viewWidth: number;
   viewHeight: number;
   enemies: Pool<Enemy>;
+  gems: Pool<Gem>;
   enemyHash: SpatialHash;
+  xp: number;
+  kills: number;
 };
 
 export const DEFAULT_VIEW_WIDTH = 360;
@@ -88,11 +101,16 @@ function createEnemy(): Enemy {
     speed: 0,
     radius: 0,
     contactDamage: 0,
-    attackInterval: 1,
-    attackTimer: 0,
+    attackIntervalTicks: 60,
+    attackTimerTicks: 0,
     animPhase: 0,
     facing: 1,
+    xp: 0,
   };
+}
+
+function createGem(): Gem {
+  return { pos: { x: 0, y: 0 }, prevX: 0, prevY: 0, value: 0 };
 }
 
 function createPlayer(classId: number): Player {
@@ -108,7 +126,7 @@ function createPlayer(classId: number): Player {
     radius: PLAYER_RADIUS,
     hp: cls.maxHp,
     maxHp: cls.maxHp,
-    iFrames: 0,
+    iFrameTicks: 0,
     walking: false,
     bobPhase: 0,
     attackCooldown: cls.cooldown,
@@ -130,7 +148,10 @@ export function createWorld(seed: number, classId: number = CLASS_KNIGHT): World
     viewWidth: DEFAULT_VIEW_WIDTH,
     viewHeight: DEFAULT_VIEW_HEIGHT,
     enemies: createPool(ENEMY_CAP, createEnemy),
+    gems: createPool(GEM_CAP, createGem),
     enemyHash: createSpatialHash(SPATIAL_CELL_SIZE, 256, ENEMY_CAP),
+    xp: 0,
+    kills: 0,
   };
 }
 
@@ -155,7 +176,7 @@ export function resetWorld(world: World, seed: number, classId: number = CLASS_K
   p.radius = PLAYER_RADIUS;
   p.hp = cls.maxHp;
   p.maxHp = cls.maxHp;
-  p.iFrames = 0;
+  p.iFrameTicks = 0;
   p.walking = false;
   p.bobPhase = 0;
   p.attackCooldown = cls.cooldown;
@@ -166,4 +187,7 @@ export function resetWorld(world: World, seed: number, classId: number = CLASS_K
   world.camera.prevX = 0;
   world.camera.prevY = 0;
   poolClear(world.enemies);
+  poolClear(world.gems);
+  world.xp = 0;
+  world.kills = 0;
 }
