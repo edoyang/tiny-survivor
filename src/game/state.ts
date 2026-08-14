@@ -17,6 +17,12 @@ export type Player = {
   iFrames: number;
 };
 
+export type Camera = {
+  pos: Vec2;
+  prevX: number;
+  prevY: number;
+};
+
 export type Enemy = {
   id: number;
   type: number;
@@ -48,9 +54,15 @@ export type World = {
   accumulator: number;
   nextEntityId: number;
   player: Player;
+  camera: Camera;
+  viewWidth: number;
+  viewHeight: number;
   enemies: Pool<Enemy>;
   enemyHash: SpatialHash;
 };
+
+export const DEFAULT_VIEW_WIDTH = 360;
+export const DEFAULT_VIEW_HEIGHT = 780;
 
 function createEnemy(): Enemy {
   return {
@@ -95,6 +107,9 @@ export function createWorld(seed: number): World {
     accumulator: 0,
     nextEntityId: 1,
     player: createPlayer(),
+    camera: { pos: { x: 0, y: 0 }, prevX: 0, prevY: 0 },
+    viewWidth: DEFAULT_VIEW_WIDTH,
+    viewHeight: DEFAULT_VIEW_HEIGHT,
     enemies: createPool(ENEMY_CAP, createEnemy),
     enemyHash: createSpatialHash(SPATIAL_CELL_SIZE, 256, ENEMY_CAP),
   };
@@ -120,5 +135,9 @@ export function resetWorld(world: World, seed: number): void {
   p.hp = PLAYER_BASE_HP;
   p.maxHp = PLAYER_BASE_HP;
   p.iFrames = 0;
+  world.camera.pos.x = 0;
+  world.camera.pos.y = 0;
+  world.camera.prevX = 0;
+  world.camera.prevY = 0;
   poolClear(world.enemies);
 }
