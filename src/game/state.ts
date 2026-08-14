@@ -37,6 +37,14 @@ export type Camera = {
   prevY: number;
 };
 
+export type SpawnState = {
+  accumulator: number;
+  bracketIndex: number;
+  nextBurstTick: number;
+  nextEliteTick: number;
+  nextBossTick: number;
+};
+
 export type Enemy = {
   id: number;
   type: number;
@@ -53,6 +61,7 @@ export type Enemy = {
   animPhase: number;
   facing: number;
   xp: number;
+  scale: number;
 };
 
 export type Gem = {
@@ -82,6 +91,7 @@ export type World = {
   enemies: Pool<Enemy>;
   gems: Pool<Gem>;
   enemyHash: SpatialHash;
+  spawn: SpawnState;
   xp: number;
   kills: number;
 };
@@ -106,11 +116,22 @@ function createEnemy(): Enemy {
     animPhase: 0,
     facing: 1,
     xp: 0,
+    scale: 1,
   };
 }
 
 function createGem(): Gem {
   return { pos: { x: 0, y: 0 }, prevX: 0, prevY: 0, value: 0 };
+}
+
+function createSpawnState(): SpawnState {
+  return {
+    accumulator: 0,
+    bracketIndex: 0,
+    nextBurstTick: 0,
+    nextEliteTick: 0,
+    nextBossTick: 0,
+  };
 }
 
 function createPlayer(classId: number): Player {
@@ -150,6 +171,7 @@ export function createWorld(seed: number, classId: number = CLASS_KNIGHT): World
     enemies: createPool(ENEMY_CAP, createEnemy),
     gems: createPool(GEM_CAP, createGem),
     enemyHash: createSpatialHash(SPATIAL_CELL_SIZE, 256, ENEMY_CAP),
+    spawn: createSpawnState(),
     xp: 0,
     kills: 0,
   };
@@ -188,6 +210,11 @@ export function resetWorld(world: World, seed: number, classId: number = CLASS_K
   world.camera.prevY = 0;
   poolClear(world.enemies);
   poolClear(world.gems);
+  world.spawn.accumulator = 0;
+  world.spawn.bracketIndex = 0;
+  world.spawn.nextBurstTick = 0;
+  world.spawn.nextEliteTick = 0;
+  world.spawn.nextBossTick = 0;
   world.xp = 0;
   world.kills = 0;
 }

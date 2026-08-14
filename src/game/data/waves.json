@@ -1,0 +1,71 @@
+{
+  "brackets": [
+    {
+      "untilSeconds": 45,
+      "types": ["slime", "fly"],
+      "weights": [3, 1],
+      "spawnsPerSecond": 1.2,
+      "hpScale": 1.0,
+      "speedScale": 1.0
+    },
+    {
+      "untilSeconds": 105,
+      "types": ["slime", "fly", "bunny"],
+      "weights": [3, 2, 1],
+      "spawnsPerSecond": 2.0,
+      "hpScale": 1.0,
+      "speedScale": 1.0
+    },
+    {
+      "untilSeconds": 180,
+      "types": ["slime", "fly", "bunny", "monster"],
+      "weights": [2, 2, 2, 1],
+      "spawnsPerSecond": 2.8,
+      "hpScale": 1.15,
+      "speedScale": 1.0
+    },
+    {
+      "untilSeconds": 270,
+      "types": ["fly", "bunny", "monster"],
+      "weights": [2, 2, 2],
+      "spawnsPerSecond": 3.6,
+      "hpScale": 1.35,
+      "speedScale": 1.05
+    },
+    {
+      "untilSeconds": 360,
+      "types": ["fly", "bunny", "monster"],
+      "weights": [1, 2, 3],
+      "spawnsPerSecond": 4.5,
+      "hpScale": 1.6,
+      "speedScale": 1.08
+    },
+    {
+      "untilSeconds": 100000,
+      "types": ["bunny", "monster"],
+      "weights": [1, 1],
+      "spawnsPerSecond": 6.0,
+      "hpScale": 2.2,
+      "speedScale": 1.12
+    }
+  ],
+  "burst": { "intervalSeconds": 50, "count": 16, "arcDegrees": 50 },
+  "elite": {
+    "intervalSeconds": 75,
+    "hpMult": 8,
+    "damageMult": 2,
+    "xpMult": 10,
+    "speedMult": 0.9,
+    "scale": 1.5
+  },
+  "boss": {
+    "intervalSeconds": 180,
+    "hpMult": 40,
+    "damageMult": 3,
+    "xpMult": 60,
+    "speedMult": 0.75,
+    "scale": 2.0
+  },
+  "spawnRingMargin": 30,
+  "concurrentCap": 200
+}

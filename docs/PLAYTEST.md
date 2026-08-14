@@ -58,3 +58,27 @@ None of this can be judged from code; every number is a starting guess.
   chore, raise radius to 55.
 - **`pickup.gemColor`** = #5ee9a0 (there is no gem sprite in the pack; gems are
   a 6 px drawn diamond, see BLOCKERS).
+
+## Phase 5 — difficulty curve (all in `data/waves.json`, all guessed)
+
+Minute by minute as shipped. Whether minute three is tense or hopeless is
+yours to judge; each line names the bracket to edit.
+
+- **0:00–0:45** — slimes + flies, 1.2 spawns/s (bracket 1). A warm-up.
+- **0:45–1:45** — bunnies join, 2.0/s (bracket 2).
+- **1:45–3:00** — all four types, 2.8/s, enemy hp x1.15 (bracket 3).
+- **3:00–4:30** — slimes retire, 3.6/s, hp x1.35, speed x1.05 (bracket 4).
+- **4:30–6:00** — monster-heavy, 4.5/s, hp x1.6 (bracket 5).
+- **6:00+** — bunnies and monsters only, 6/s, hp x2.2 (bracket 6). This is
+  meant to be the survival wall.
+- To make any window harder/easier: edit that bracket's `spawnsPerSecond`
+  first, `hpScale` second.
+- **Bursts**: every `burst.intervalSeconds` = 50 s, `count` = 16 of one type
+  from one direction inside a `arcDegrees` = 50 arc.
+- **Elites**: every `elite.intervalSeconds` = 75 s. hp x8, damage x2, xp x10,
+  10% slower, drawn 1.5x.
+- **Boss**: every `boss.intervalSeconds` = 180 s. The blue monster at hp x40,
+  damage x3, xp x60, 25% slower, drawn 2x. With knight damage as shipped it
+  takes roughly 45-60 s of sustained fire - unverified.
+- **Concurrent cap**: `concurrentCap` = 200. At cap the farthest enemy is
+  recycled to the spawn ring. Raise only after profiling on device.

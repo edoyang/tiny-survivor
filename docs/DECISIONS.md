@@ -18,6 +18,12 @@ Every place one reading of the spec was picked over another.
   a tick between enemies. Integer ticks make "two staggered enemies stay
   staggered forever" exact and testable. `attackInterval` in monsters.json
   stays in seconds; it is converted once at spawn.
+- **The boss is always the `monster` type.** waves.json brackets drive regular
+  and elite type choice, but the periodic boss reads best as the biggest sprite
+  in the pack scaled 2x, rather than a random bracket pick (a "boss slime" at
+  minute 3 read as a bug, not a feature).
+- **Elites pick a random type from the active bracket**, so late elites are
+  bunnies/monsters and early ones are slimes/flies.
 - **When the gem pool (512) is full, new XP is credited directly to the player**
   instead of being dropped or merged. No XP is ever lost; the only cost is a
   missing visual gem in an already extremely dense scene.

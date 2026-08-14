@@ -219,7 +219,7 @@ export function drawWorld(
     const frame =
       Math.floor(world.time * animFps + e.animPhase * MONSTER_WALK_FRAMES) % MONSTER_WALK_FRAMES;
     ctx.enemySrcs[i] = ctx.monsterRects[e.type][frame][e.facing === 1 ? 1 : 0];
-    ctx.enemyXforms[i].set(1, 0, ex - 12, ey - 12);
+    ctx.enemyXforms[i].set(e.scale, 0, ex - 12 * e.scale, ey - 12 * e.scale);
   }
   for (let i = enemies.count; i < ENEMY_CAP; i++) {
     ctx.enemyXforms[i].set(0, 0, 0, 0);

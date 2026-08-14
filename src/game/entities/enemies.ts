@@ -11,15 +11,14 @@ export type EnemyStats = {
   radius: number;
 };
 
-export function spawnEnemy(
+export function initEnemy(
   world: World,
+  enemy: Enemy,
   stats: EnemyStats,
   x: number,
   y: number,
   animPhase: number,
-): Enemy | null {
-  const enemy = poolObtain(world.enemies);
-  if (enemy === null) return null;
+): void {
   enemy.id = world.nextEntityId;
   world.nextEntityId++;
   enemy.type = stats.type;
@@ -37,5 +36,18 @@ export function spawnEnemy(
   enemy.animPhase = animPhase;
   enemy.facing = 1;
   enemy.xp = stats.xp;
+  enemy.scale = 1;
+}
+
+export function spawnEnemy(
+  world: World,
+  stats: EnemyStats,
+  x: number,
+  y: number,
+  animPhase: number,
+): Enemy | null {
+  const enemy = poolObtain(world.enemies);
+  if (enemy === null) return null;
+  initEnemy(world, enemy, stats, x, y, animPhase);
   return enemy;
 }
