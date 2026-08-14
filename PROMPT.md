@@ -15,14 +15,28 @@ https://docs.expo.dev/versions/v57.0.0/. Do not write Expo code from memory.
 to start the next phase. Do not stop to summarise progress and wait. Finish a phase,
 verify it, commit it, begin the next one.
 
-**Stop only for these:**
-- A **playtest gate** (marked in the phase list). Stop, tell the owner what to feel for.
-- A **hard blocker**: a missing asset, or a design question where two readings produce
-  genuinely different games. Ask one specific question, then continue with everything
-  that does not depend on the answer.
-- A verification step fails and you cannot fix it.
+**Do not stop. Ever.** Run Phase 0 through Phase 8 in one continuous pass. The owner
+reviews the finished game and requests fixes afterwards. He does not want to be
+interrupted partway.
 
-Anything else — keep going.
+That means you never wait on an answer. When you hit something you would normally ask
+about, write it down and keep moving:
+
+| Situation | What you do |
+|---|---|
+| A number that can only be judged by feel (swing amplitude, spawn pressure, class balance) | Pick a sensible value, log it to `docs/PLAYTEST.md`, continue |
+| A design question with two readings | Pick the one that matches §1–§11, log it to `docs/DECISIONS.md` with your reasoning, continue |
+| A missing or ambiguous asset | Use the closest available substitute, log it to `docs/BLOCKERS.md`, continue |
+| A verification step fails | Fix it. If genuinely stuck after real attempts, log it to `docs/BLOCKERS.md`, do the minimum to keep the build green, continue |
+
+**The one hard invariant: the app must always build.** The owner is going to open the
+finished thing and play it. A repo that does not compile gives him nothing to review, so
+a phase never ends with a red build. If a feature cannot be made to work, ship it
+disabled behind a flag and log it — do not leave broken code in the path.
+
+Logging is not optional. `docs/PLAYTEST.md` is the punch-list the owner reads while
+playing, and it is the only reason skipping the gates is safe. Every feel-dependent
+number you guessed goes in it, with the file and line to change.
 
 **Never launch the game.** The owner playtests. Do not run `expo start`, do not open a
 simulator, do not take screenshots. Your verification is:
@@ -102,8 +116,8 @@ These are unverified. Confirm each one and write the answer into `docs/ASSETS.md
    cycle or 2 idle + 2 walk. Verify. If ambiguous, treat as a 4-frame loop and note the
    assumption.
 4. **The Priest has no weapon sprite.** Three equipment sprites, four classes. Assign
-   `wand.png` to both Wizard and Priest, tinted differently, and flag to the owner that
-   a priest staff asset is missing.
+   `wand.png` to both Wizard and Priest, tinted differently, and log the missing priest
+   staff to `docs/BLOCKERS.md`. Do not stop over it.
 5. **Three floor tiles is very thin** for a 5×5 chunk layout. Build the tiler so it
    works with three and accepts more later without a rewrite.
 6. **`orb.png` is 100×100**, off-grid versus everything else, and probably not from the
@@ -170,6 +184,13 @@ never an O(n²) pair scan.
 No magic numbers in systems. Damage, speed, cooldown, radius, HP, XP value, spawn rate
 all come from JSON under `src/game/data/`, loaded into typed structs at boot.
 
+**Every feel number lives in `data/tuning.json`.** Bob height and frequency, weapon
+swing amplitudes, camera smoothing, i-frame duration, pickup radius, knockback, screen
+shake, homing turn rates. Because nobody is playtesting mid-build, the owner's first
+session will produce a list of "this feels wrong" notes — and every one of them must be
+fixable by editing one JSON file, not by hunting through systems code. If a feel number
+is hardcoded anywhere outside `tuning.json`, that is a defect.
+
 ---
 
 ## 5. Heroes and weapons
@@ -192,8 +213,9 @@ This is what makes both the weapon swing and the throw-disappear behaviour possi
   eased return to rest over about 0.25 s. This must be visually obvious next to the
   walk oscillation.
 
-All of these numbers are starting values in `weapons.json`. Expect to retune them at the
-Phase 3 playtest gate.
+All of these numbers are starting values in `tuning.json`. They are guesses. Log them to
+`docs/PLAYTEST.md` with the key names so the owner can retune them in one file after
+playing.
 
 ### Weapon visibility on throw
 
@@ -231,7 +253,9 @@ explosion, one damage application per enemy.
   target, hits one enemy, and despawns. **No explosion, no AoE.**
 
   *(Assumption: the brief said "not exploding and deal an AoE"; read as single-target,
-  in contrast to the wizard's explicitly-AoE fireball. Confirm at the Phase 6 gate.)*
+  in contrast to the wizard's explicitly-AoE fireball. Build it single-target and log
+  this reading to `docs/DECISIONS.md` — it is the one place a wrong reading changes the
+  class meaningfully.)*
 
 **Knight — piercing swords.** Fast, and **must never miss.** Acquire the nearest enemy
 at spawn and home toward it with a high enough turn rate that escape is not possible.
@@ -352,7 +376,8 @@ Work through these in order. After each: `npx tsc --noEmit`, `npm test`,
 Delete every template screen and component. Move `SPRITES/` to `assets/sprites/`. Add
 Skia. Add a test runner (follow the Expo v57 unit testing guide; the sim is pure TS so a
 plain runner is fine). Create the `src/game`, `src/render`, `src/app` skeleton. Create
-`docs/ASSETS.md` and record every asset fact you verified from §3.
+`docs/ASSETS.md` and record every asset fact you verified from §3. Create empty
+`docs/PLAYTEST.md`, `docs/DECISIONS.md`, `docs/BLOCKERS.md` and `docs/BACKLOG.md`.
 *Done when:* the app builds, boots to a blank screen, and one placeholder test passes.
 
 **Phase 1 — Simulation core, no rendering at all.**
@@ -366,13 +391,13 @@ correctness, and determinism — the same seed and inputs produce an identical w
 Skia canvas, infinite tiling floor, camera, player entity, joystick input.
 *Done when:* a placeholder square walks around an endless floor.
 
-**Phase 3 — Heroes and the weapon rig.** ← **PLAYTEST GATE**
+**Phase 3 — Heroes and the weapon rig.**
 All four hero sprites, two-part body/weapon rig, idle bob, walk bob and flip, the ±6°
 walk oscillation, and the hard attack swing (triggered on a timer for now, no
 projectiles yet).
-*Stop here.* The owner needs to feel whether the walk swing is too subtle or too much,
-and whether the attack swing reads clearly against it. These numbers cannot be judged
-from code.
+*Log to `docs/PLAYTEST.md`:* whether the walk swing is too subtle or too much, and
+whether the attack swing reads clearly against it. Name the exact keys in `tuning.json`
+that change each one. These cannot be judged from code — do not claim they are right.
 
 **Phase 4 — Enemies.**
 `monsters.json`, all four types, 4-frame animation with random phase, chase, soft
@@ -381,29 +406,42 @@ death and XP drop.
 *Done when:* tests prove two enemies with staggered arrival keep independent attack
 timers, and that damage never applies more than once per interval per enemy.
 
-**Phase 5 — Spawn director.** ← **PLAYTEST GATE**
+**Phase 5 — Spawn director.**
 `waves.json`, off-screen ring spawning, time-scaled rate, burst events, elites, boss,
 concurrent cap with recycling.
-*Stop here.* Only the owner can tell you whether minute three feels tense or hopeless.
+*Log to `docs/PLAYTEST.md`:* the difficulty curve you chose, minute by minute, and which
+`waves.json` entries to edit to make any minute harder or easier. Whether minute three
+feels tense or hopeless is the owner's call.
 
-**Phase 6 — The four attacks.** ← **PLAYTEST GATE**
+**Phase 6 — The four attacks.**
 Wizard fireball with AoE. Priest orbiting orb plus single-target seeking missile. Knight
 piercing homing swords. Dwarf returning axe with its 1 s dwell. The volley system.
 Weapon hide-on-throw for Knight and Dwarf.
 *Done when:* tests cover per-target re-hit cooldown on orb and axe, pierce counting and
 one-hit-per-enemy-per-sword, all three axe phases including damage during dwell, and
 that a knight sword cannot miss a moving target.
-*Stop here.* Class feel and relative power are a hands-on judgement.
+*Log to `docs/PLAYTEST.md`:* the damage, cooldown, range and AoE radius you gave each
+class, and your honest guess at which class is strongest. Relative power is a hands-on
+judgement — flag it as unverified.
 
 **Phase 7 — The loop closes.**
 Class select menu, HUD, XP and levelling, upgrade cards, death and results, retry.
 *Done when:* a full run — pick a class, play, level up, die, retry — works end to end.
 
-**Phase 8 — Make it hold up.**
-Profile on device. Reduce overdraw, verify Atlas batching, confirm zero allocation in
-the hot loop, tune the concurrent cap. Release build.
-*Done when:* it holds 60 fps on a real device at the enemy cap, and
-`npx expo export` produces a clean build.
+**Phase 8 — Make it hold up, then hand over.**
+Reduce overdraw, verify Atlas batching, confirm zero allocation in the hot loop, tune
+the concurrent cap. Release build.
+
+Then write the handover at the top of `docs/PLAYTEST.md`:
+- how to run it (`npx expo run:android`)
+- every feel number you guessed, its `tuning.json` key, and what to try if it feels wrong
+- everything in `docs/BLOCKERS.md` that is still unresolved
+- everything in `docs/DECISIONS.md` where you picked one reading over another
+- what you could **not** verify, stated plainly
+
+*Done when:* `npx expo export` is clean, the full suite passes, and that handover exists.
+This document is the deliverable as much as the game is — it is what makes the owner's
+first play session productive instead of a bug hunt.
 
 ---
 
@@ -411,7 +449,14 @@ the hot loop, tune the concurrent cap. Release build.
 
 - Expo SDK 57 docs — https://docs.expo.dev/versions/v57.0.0/
 - React Native Skia, especially the `Atlas` API for batched sprite drawing
-- `docs/ASSETS.md` — the file you create and maintain. It is the only trusted source for
-  frame indices and grid layouts. If a number is not in there, it is not verified.
+Files you create and maintain:
 
-Start with Phase 0.
+- `docs/ASSETS.md` — the only trusted source for frame indices and grid layouts. If a
+  number is not in there, it is not verified.
+- `docs/PLAYTEST.md` — every number you guessed by feel, with its `tuning.json` key. The
+  owner's punch-list.
+- `docs/DECISIONS.md` — every place you picked one reading of the spec over another.
+- `docs/BLOCKERS.md` — missing assets, unfixable failures, anything shipped disabled.
+- `docs/BACKLOG.md` — one line for anything worth doing later. Never act on it.
+
+Start with Phase 0. Do not stop until Phase 8 is done.

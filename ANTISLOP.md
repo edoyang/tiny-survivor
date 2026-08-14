@@ -115,6 +115,11 @@ assertion to match wrong output. Fix the code, or report that it is broken.
 - **Never claim you tested how the game feels.** You cannot launch it. Frame timing,
   swing amplitude, spawn pressure and class balance are the owner's call, not yours.
 - If you guessed a sprite frame index or grid layout, say that you guessed.
+- **Every guess gets logged.** Nobody is playtesting between phases, so an unlogged
+  guess is invisible until it wastes the owner's time. Feel numbers go in
+  `docs/PLAYTEST.md`, spec readings in `docs/DECISIONS.md`, missing assets and unfixable
+  failures in `docs/BLOCKERS.md`. Silently guessing and moving on is the single worst
+  thing you can do in this repo.
 - Banned in every report: robust, comprehensive, production-ready, seamless, powerful,
   elegant, blazing, delightful, enterprise-grade.
 - If something is broken, unfinished, or skipped, that goes in the **first sentence** of
@@ -128,6 +133,8 @@ assertion to match wrong output. Fix the code, or report that it is broken.
 - No restating the plan before doing it. Do it.
 - No "You're absolutely right", no "Great question", no preamble.
 - No asking permission to continue between phases. Continue.
+- **Never stop to ask a question.** Pick the best answer, log it, keep building. The
+  owner reviews the finished game, not the process.
 - Disagree once, in two sentences, then build what was asked.
 
 ---
@@ -155,5 +162,7 @@ Noticed something worth doing later? One line in `docs/BACKLOG.md`, then move on
 - [ ] No `any` or `@ts-ignore`
 - [ ] No allocation added inside `advance()`
 - [ ] No new dependency, or the commit says why it was unavoidable
+- [ ] No feel number hardcoded outside `data/tuning.json`
 - [ ] `docs/ASSETS.md` updated if any asset fact was verified
+- [ ] Every guess made this phase logged to PLAYTEST / DECISIONS / BLOCKERS
 - [ ] Commit message says what changed, not "improvements" or "updates"
