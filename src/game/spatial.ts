@@ -68,6 +68,20 @@ export function rebuild(hash: SpatialHash, items: Positioned[], count: number): 
   }
 }
 
+export function sortQueryResultsDescending(hash: SpatialHash): void {
+  const results = hash.queryResults;
+  const n = hash.queryCount;
+  for (let i = 1; i < n; i++) {
+    const value = results[i];
+    let j = i - 1;
+    while (j >= 0 && results[j] < value) {
+      results[j + 1] = results[j];
+      j--;
+    }
+    results[j + 1] = value;
+  }
+}
+
 export function queryCircle(hash: SpatialHash, x: number, y: number, radius: number): void {
   hash.queryCount = 0;
   const inv = 1 / hash.cellSize;

@@ -51,6 +51,23 @@ export function buildAtlas(entries: AtlasEntry[]): SpriteAtlas {
   return { image, rects };
 }
 
+export function makeMissileImage(color: string): SkImage {
+  const size = 6;
+  const surface = Skia.Surface.MakeOffscreen(size, size);
+  if (surface === null) {
+    throw new Error('missile surface failed');
+  }
+  const canvas = surface.getCanvas();
+  const glow = Skia.Paint();
+  glow.setColor(Skia.Color(color));
+  canvas.drawCircle(size / 2, size / 2, size / 2, glow);
+  const core = Skia.Paint();
+  core.setColor(Skia.Color('#ffffff'));
+  canvas.drawCircle(size / 2, size / 2, size / 4, core);
+  surface.flush();
+  return surface.makeImageSnapshot();
+}
+
 export function makeGemImage(color: string): SkImage {
   const size = 6;
   const surface = Skia.Surface.MakeOffscreen(size, size);

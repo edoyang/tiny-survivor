@@ -14,7 +14,7 @@ import tuning from '../game/data/tuning.json' with { type: 'json' };
 import { MONSTER_SPRITES } from '../game/entities/monsterTypes.ts';
 import { CLASS_KNIGHT, createWorld } from '../game/state.ts';
 import { accumulate, interpolationAlpha } from '../game/step.ts';
-import { buildAtlas, makeGemImage, type AtlasEntry } from './atlas.ts';
+import { buildAtlas, makeGemImage, makeMissileImage, type AtlasEntry } from './atlas.ts';
 import { createRenderContext, drawWorld } from './drawWorld.ts';
 import { createJoystick, joystickInput } from './joystick.ts';
 
@@ -76,6 +76,10 @@ export function GameCanvas() {
   const cls = classes[CLASS_ID];
   const heroBody = useImage(HERO_IMAGES[cls.id]);
   const heroWeapon = useImage(WEAPON_IMAGES[cls.weapon]);
+  const swordImg = useImage(WEAPON_IMAGES.sword);
+  const axeImg = useImage(WEAPON_IMAGES.axe);
+  const fireballImg = useImage(require('@/assets/sprites/Projectile/fireball_strip.png'));
+  const orbImg = useImage(require('@/assets/sprites/Projectile/orb.png'));
   const slime0 = useImage(MONSTER_IMAGES[0][0]);
   const slime1 = useImage(MONSTER_IMAGES[0][1]);
   const slime2 = useImage(MONSTER_IMAGES[0][2]);
@@ -106,6 +110,10 @@ export function GameCanvas() {
       tile49 === null ||
       heroBody === null ||
       heroWeapon === null ||
+      swordImg === null ||
+      axeImg === null ||
+      fireballImg === null ||
+      orbImg === null ||
       monsterFrames.some((frames) => frames.some((img) => img === null))
     ) {
       return;
@@ -115,6 +123,11 @@ export function GameCanvas() {
       { name: 'tile_0048', image: tile48 },
       { name: 'tile_0049', image: tile49 },
       { name: 'gem', image: makeGemImage(tuning.pickup.gemColor) },
+      { name: 'missile', image: makeMissileImage(tuning.projectiles.missileColor) },
+      { name: 'sword', image: swordImg },
+      { name: 'axe', image: axeImg },
+      { name: 'fireball', image: fireballImg },
+      { name: 'orb', image: orbImg },
     ];
     for (let type = 0; type < monsterFrames.length; type++) {
       for (let frame = 0; frame < 4; frame++) {
@@ -154,6 +167,10 @@ export function GameCanvas() {
     tile49,
     heroBody,
     heroWeapon,
+    swordImg,
+    axeImg,
+    fireballImg,
+    orbImg,
     slime0,
     slime1,
     slime2,

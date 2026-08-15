@@ -1,0 +1,26 @@
+import type { World } from '../state.ts';
+
+export function findNearestEnemy(world: World, x: number, y: number, maxRange: number): number {
+  const pool = world.enemies;
+  let best = -1;
+  let bestD2 = maxRange * maxRange;
+  for (let i = 0; i < pool.count; i++) {
+    const e = pool.items[i];
+    const dx = e.pos.x - x;
+    const dy = e.pos.y - y;
+    const d2 = dx * dx + dy * dy;
+    if (d2 < bestD2) {
+      bestD2 = d2;
+      best = i;
+    }
+  }
+  return best;
+}
+
+export function findEnemyIndexById(world: World, id: number): number {
+  const pool = world.enemies;
+  for (let i = 0; i < pool.count; i++) {
+    if (pool.items[i].id === id) return i;
+  }
+  return -1;
+}

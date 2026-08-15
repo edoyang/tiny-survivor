@@ -1,26 +1,52 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createWorld, CLASS_KNIGHT } from '../state.ts';
+import { spawnEnemy, type EnemyStats } from '../entities/enemies.ts';
+import { CLASS_KNIGHT, CLASS_WIZARD, createWorld } from '../state.ts';
 import { advance, FIXED_DT } from '../step.ts';
 
-test('attack fires once per cooldown, on its own clock', () => {
+const TARGET_DUMMY: EnemyStats = {
+  type: 0,
+  hp: 1000000,
+  speed: 0,
+  damage: 0,
+  attackInterval: 1000,
+  xp: 1,
+  radius: 8,
+};
+
+test('attack triggers once per cooldown while a target is in range', () => {
   const world = createWorld(1, CLASS_KNIGHT);
-  const cooldown = world.player.attackCooldown;
+  spawnEnemy(world, TARGET_DUMMY, 100, 0, 0);
   const fireTicks: number[] = [];
   for (let i = 0; i < 600; i++) {
     advance(world);
     if (world.player.attackAnimT === 0) fireTicks.push(world.tick);
   }
   assert.ok(fireTicks.length >= 2);
-  const expectedGap = Math.round(cooldown / FIXED_DT);
   for (let i = 1; i < fireTicks.length; i++) {
-    const gap = fireTicks[i] - fireTicks[i - 1];
-    assert.ok(Math.abs(gap - expectedGap) <= 1, `gap ${gap} vs expected ${expectedGap}`);
+    assert.equal(fireTicks[i] - fireTicks[i - 1], world.player.attackCooldownTicks);
+  }
+});
+
+test('with no enemies in range the hero holds fire and keeps the weapon', () => {
+  const world = createWorld(1, CLASS_KNIGHT);
+  for (let i = 0; i < 300; i++) advance(world);
+  assert.equal(world.projectiles.count, 0);
+  assert.ok(world.player.weaponVisible);
+});
+
+test('wizard weapon stays visible through an attack', () => {
+  const world = createWorld(1, CLASS_WIZARD);
+  spawnEnemy(world, TARGET_DUMMY, 100, 0, 0);
+  for (let i = 0; i < 300; i++) {
+    advance(world);
+    assert.ok(world.player.weaponVisible);
   }
 });
 
 test('attack anim clock advances after firing', () => {
   const world = createWorld(1, CLASS_KNIGHT);
+  spawnEnemy(world, TARGET_DUMMY, 100, 0, 0);
   while (world.player.attackAnimT !== 0) advance(world);
   advance(world);
   assert.ok(Math.abs(world.player.attackAnimT - FIXED_DT) < 1e-9);

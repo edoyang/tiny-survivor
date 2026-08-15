@@ -82,3 +82,28 @@ yours to judge; each line names the bracket to edit.
   takes roughly 45-60 s of sustained fire - unverified.
 - **Concurrent cap**: `concurrentCap` = 200. At cap the farthest enemy is
   recycled to the spawn ring. Raise only after profiling on device.
+
+## Phase 6 — class weapons (all in `data/weapons.json` unless noted)
+
+Every number is a guess. Honest strength ranking guess, unverified by play:
+**wizard > knight > dwarf > priest**. The wizard one-shots early slimes with
+AoE splash; the priest's orb dps is auto but small. If the priest feels weak,
+raise `orb.damage` to 8 or shorten `missile`'s class cooldown in
+`classes.json`. If the wizard trivializes minutes 1-3, drop
+`fireball.aoeRadius` to 28.
+
+- **Wizard fireball**: damage 12, speed 170, AoE radius 36, range 280.
+- **Knight sword**: damage 8, speed 230, pierce 3, turn 900 deg/s,
+  lifetime 2.5 s. The turn rate is what makes "never miss" true; below ~500
+  fast enemies can orbit out.
+- **Dwarf axe**: damage 10, speed 150, out-range 90, dwell 1.0 s, re-hit
+  0.5 s, return at x1.3 speed.
+- **Priest orb**: damage 6, orbit radius 34, 200 deg/s, re-hit 0.5 s.
+- **Priest missile**: damage 9, speed 160, turn 600 deg/s, single target.
+- **Volley stagger**: `volley.staggerSeconds` = 0.12 between shots.
+- **Acquire range**: `acquireRange` = 280 (roughly one screen height at
+  scale 3). Heroes hold fire with nothing in range.
+- Projectile looks: `tuning.json` `projectiles.*` — fireball drawn at 0.75
+  scale (32 px art next to 16 px heroes), orb at 0.2 (100 px art), axe spins
+  at 540 deg/s visually. The missile is a drawn 6 px bolt, colour
+  `projectiles.missileColor`.

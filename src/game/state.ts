@@ -26,9 +26,13 @@ export type Player = {
   iFrameTicks: number;
   walking: boolean;
   bobPhase: number;
-  attackCooldown: number;
-  attackTimer: number;
+  attackCooldownTicks: number;
+  attackTimerTicks: number;
   attackAnimT: number;
+  volleyCount: number;
+  volleyShotsLeft: number;
+  nextVolleyShotTick: number;
+  weaponVisible: boolean;
 };
 
 export type Camera = {
@@ -71,9 +75,58 @@ export type Gem = {
   value: number;
 };
 
+export const PROJ_FIREBALL = 0;
+export const PROJ_SWORD = 1;
+export const PROJ_AXE = 2;
+export const PROJ_MISSILE = 3;
+
+export const AXE_PHASE_OUT = 0;
+export const AXE_PHASE_DWELL = 1;
+export const AXE_PHASE_RETURN = 2;
+
+export const MAX_PIERCE_TRACKED = 16;
+export const REHIT_SLOTS = 32;
+
+export type Projectile = {
+  id: number;
+  kind: number;
+  pos: Vec2;
+  prevX: number;
+  prevY: number;
+  dirX: number;
+  dirY: number;
+  speed: number;
+  angle: number;
+  damage: number;
+  radius: number;
+  targetId: number;
+  pierceLeft: number;
+  hitIds: Int32Array;
+  hitCount: number;
+  axePhase: number;
+  traveled: number;
+  dwellTicksLeft: number;
+  ttlTicks: number;
+  rehitIds: Int32Array;
+  rehitNextTick: Int32Array;
+  rehitCount: number;
+};
+
+export type Orb = {
+  active: boolean;
+  angle: number;
+  pos: Vec2;
+  prevX: number;
+  prevY: number;
+  rehitIds: Int32Array;
+  rehitNextTick: Int32Array;
+  rehitCount: number;
+};
+
 export const FIXED_DT = 1 / 60;
 export const ENEMY_CAP = 256;
 export const GEM_CAP = 512;
+export const PROJECTILE_CAP = 128;
 export const PLAYER_RADIUS = 6;
 export const SPATIAL_CELL_SIZE = 32;
 
@@ -90,6 +143,9 @@ export type World = {
   viewHeight: number;
   enemies: Pool<Enemy>;
   gems: Pool<Gem>;
+  projectiles: Pool<Projectile>;
+  orb: Orb;
+  liveAxes: number;
   enemyHash: SpatialHash;
   spawn: SpawnState;
   xp: number;
@@ -150,9 +206,53 @@ function createPlayer(classId: number): Player {
     iFrameTicks: 0,
     walking: false,
     bobPhase: 0,
-    attackCooldown: cls.cooldown,
-    attackTimer: cls.cooldown,
+    attackCooldownTicks: Math.round(cls.cooldown / FIXED_DT),
+    attackTimerTicks: Math.round(cls.cooldown / FIXED_DT),
     attackAnimT: 1000,
+    volleyCount: 1,
+    volleyShotsLeft: 0,
+    nextVolleyShotTick: 0,
+    weaponVisible: true,
+  };
+}
+
+function createProjectile(): Projectile {
+  return {
+    id: 0,
+    kind: 0,
+    pos: { x: 0, y: 0 },
+    prevX: 0,
+    prevY: 0,
+    dirX: 1,
+    dirY: 0,
+    speed: 0,
+    angle: 0,
+    damage: 0,
+    radius: 0,
+    targetId: 0,
+    pierceLeft: 0,
+    hitIds: new Int32Array(MAX_PIERCE_TRACKED),
+    hitCount: 0,
+    axePhase: 0,
+    traveled: 0,
+    dwellTicksLeft: 0,
+    ttlTicks: 0,
+    rehitIds: new Int32Array(REHIT_SLOTS),
+    rehitNextTick: new Int32Array(REHIT_SLOTS),
+    rehitCount: 0,
+  };
+}
+
+function createOrb(active: boolean): Orb {
+  return {
+    active,
+    angle: 0,
+    pos: { x: 0, y: 0 },
+    prevX: 0,
+    prevY: 0,
+    rehitIds: new Int32Array(REHIT_SLOTS),
+    rehitNextTick: new Int32Array(REHIT_SLOTS),
+    rehitCount: 0,
   };
 }
 
@@ -170,6 +270,9 @@ export function createWorld(seed: number, classId: number = CLASS_KNIGHT): World
     viewHeight: DEFAULT_VIEW_HEIGHT,
     enemies: createPool(ENEMY_CAP, createEnemy),
     gems: createPool(GEM_CAP, createGem),
+    projectiles: createPool(PROJECTILE_CAP, createProjectile),
+    orb: createOrb(classId === CLASS_PRIEST),
+    liveAxes: 0,
     enemyHash: createSpatialHash(SPATIAL_CELL_SIZE, 256, ENEMY_CAP),
     spawn: createSpawnState(),
     xp: 0,
@@ -201,15 +304,28 @@ export function resetWorld(world: World, seed: number, classId: number = CLASS_K
   p.iFrameTicks = 0;
   p.walking = false;
   p.bobPhase = 0;
-  p.attackCooldown = cls.cooldown;
-  p.attackTimer = cls.cooldown;
+  p.attackCooldownTicks = Math.round(cls.cooldown / FIXED_DT);
+  p.attackTimerTicks = Math.round(cls.cooldown / FIXED_DT);
   p.attackAnimT = 1000;
+  p.volleyCount = 1;
+  p.volleyShotsLeft = 0;
+  p.nextVolleyShotTick = 0;
+  p.weaponVisible = true;
   world.camera.pos.x = 0;
   world.camera.pos.y = 0;
   world.camera.prevX = 0;
   world.camera.prevY = 0;
   poolClear(world.enemies);
   poolClear(world.gems);
+  poolClear(world.projectiles);
+  world.orb.active = classId === CLASS_PRIEST;
+  world.orb.angle = 0;
+  world.orb.pos.x = 0;
+  world.orb.pos.y = 0;
+  world.orb.prevX = 0;
+  world.orb.prevY = 0;
+  world.orb.rehitCount = 0;
+  world.liveAxes = 0;
   world.spawn.accumulator = 0;
   world.spawn.bracketIndex = 0;
   world.spawn.nextBurstTick = 0;

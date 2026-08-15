@@ -12,7 +12,15 @@ import {
 } from '@shopify/react-native-skia';
 import tuning from '../game/data/tuning.json' with { type: 'json' };
 import { MONSTER_SPRITES } from '../game/entities/monsterTypes.ts';
-import { ENEMY_CAP, GEM_CAP, type World } from '../game/state.ts';
+import {
+  ENEMY_CAP,
+  GEM_CAP,
+  PROJ_AXE,
+  PROJ_FIREBALL,
+  PROJ_SWORD,
+  PROJECTILE_CAP,
+  type World,
+} from '../game/state.ts';
 import { flippedName, type SpriteAtlas } from './atlas.ts';
 import { floorTileAt, generateFloorLayout, TILE_SIZE } from './floor.ts';
 import { computeHeroPose, createHeroPose, type HeroPose } from './hero.ts';
@@ -54,9 +62,18 @@ export type RenderContext = {
   enemyXforms: SkRSXform[];
   gemSrcs: SkRect[];
   gemXforms: SkRSXform[];
+  fireballFrames: SkRect[];
+  swordRect: SkRect;
+  axeRect: SkRect;
+  orbRect: SkRect;
+  missileRect: SkRect;
+  projSrcs: SkRect[];
+  projXforms: SkRSXform[];
 };
 
 export const MONSTER_WALK_FRAMES = 3;
+export const FIREBALL_FRAMES = 8;
+const HALF_PI = Math.PI / 2;
 
 const NEAREST = { filter: FilterMode.Nearest };
 
@@ -96,6 +113,18 @@ export function createRenderContext(
     return frames;
   });
   const gemRect = atlas.rects.gem;
+  const fireballStrip = atlas.rects.fireball;
+  const fireballFrames: SkRect[] = [];
+  for (let f = 0; f < FIREBALL_FRAMES; f++) {
+    fireballFrames.push(Skia.XYWHRect(fireballStrip.x + f * 32, fireballStrip.y, 32, 32));
+  }
+  const projCount = PROJECTILE_CAP + 1;
+  const projSrcs: SkRect[] = new Array(projCount);
+  const projXforms: SkRSXform[] = new Array(projCount);
+  for (let i = 0; i < projCount; i++) {
+    projSrcs[i] = gemRect;
+    projXforms[i] = Skia.RSXform(0, 0, 0, 0);
+  }
   const enemySrcs: SkRect[] = new Array(ENEMY_CAP);
   const enemyXforms: SkRSXform[] = new Array(ENEMY_CAP);
   for (let i = 0; i < ENEMY_CAP; i++) {
@@ -142,7 +171,33 @@ export function createRenderContext(
     enemyXforms,
     gemSrcs,
     gemXforms,
+    fireballFrames,
+    swordRect: atlas.rects.sword,
+    axeRect: atlas.rects.axe,
+    orbRect: atlas.rects.orb,
+    missileRect: atlas.rects.missile,
+    projSrcs,
+    projXforms,
   };
+}
+
+function setRotatedXform(
+  xform: SkRSXform,
+  scale: number,
+  angleRad: number,
+  centerX: number,
+  centerY: number,
+  anchorX: number,
+  anchorY: number,
+): void {
+  const scos = Math.cos(angleRad) * scale;
+  const ssin = Math.sin(angleRad) * scale;
+  xform.set(
+    scos,
+    ssin,
+    centerX - (scos * anchorX - ssin * anchorY),
+    centerY - (ssin * anchorX + scos * anchorY),
+  );
 }
 
 function lerp(a: number, b: number, t: number): number {
@@ -234,6 +289,53 @@ export function drawWorld(
     NEAREST,
   );
 
+  const projectiles = world.projectiles;
+  const projTuning = tuning.projectiles;
+  const axeSpinRad = (projTuning.axeSpinDegPerSec * Math.PI) / 180;
+  let projDrawCount = 0;
+  for (let i = 0; i < projectiles.count; i++) {
+    const p = projectiles.items[i];
+    const cx = lerp(p.prevX, p.pos.x, alpha);
+    const cy = lerp(p.prevY, p.pos.y, alpha);
+    const xform = ctx.projXforms[projDrawCount];
+    if (p.kind === PROJ_FIREBALL) {
+      const frame =
+        Math.floor(world.time * projTuning.fireballFps + (p.id % FIREBALL_FRAMES)) %
+        FIREBALL_FRAMES;
+      ctx.projSrcs[projDrawCount] = ctx.fireballFrames[frame];
+      setRotatedXform(xform, projTuning.fireballScale, p.angle, cx, cy, 16, 16);
+    } else if (p.kind === PROJ_SWORD) {
+      ctx.projSrcs[projDrawCount] = ctx.swordRect;
+      setRotatedXform(xform, 1, p.angle + HALF_PI, cx, cy, 8, 8);
+    } else if (p.kind === PROJ_AXE) {
+      ctx.projSrcs[projDrawCount] = ctx.axeRect;
+      setRotatedXform(xform, 1, world.time * axeSpinRad + p.id, cx, cy, 8, 8);
+    } else {
+      ctx.projSrcs[projDrawCount] = ctx.missileRect;
+      setRotatedXform(xform, 1, 0, cx, cy, 3, 3);
+    }
+    projDrawCount++;
+  }
+  if (world.orb.active) {
+    const ox = lerp(world.orb.prevX, world.orb.pos.x, alpha);
+    const oy = lerp(world.orb.prevY, world.orb.pos.y, alpha);
+    ctx.projSrcs[projDrawCount] = ctx.orbRect;
+    setRotatedXform(ctx.projXforms[projDrawCount], projTuning.orbScale, world.orb.angle, ox, oy, 50, 50);
+    projDrawCount++;
+  }
+  for (let i = projDrawCount; i < ctx.projXforms.length; i++) {
+    ctx.projXforms[i].set(0, 0, 0, 0);
+  }
+  canvas.drawAtlas(
+    ctx.atlas.image,
+    ctx.projSrcs,
+    ctx.projXforms,
+    ctx.spritePaint,
+    undefined,
+    undefined,
+    NEAREST,
+  );
+
   const px = lerp(world.player.prevX, world.player.pos.x, alpha);
   const py = lerp(world.player.prevY, world.player.pos.y, alpha);
   computeHeroPose(world, ctx.heroPose);
@@ -249,16 +351,18 @@ export function drawWorld(
     MipmapMode.None,
     ctx.spritePaint,
   );
-  canvas.translate(rig.weaponGripOffsetX, rig.weaponGripOffsetY);
-  canvas.rotate(ctx.heroPose.weaponAngleDeg, 0, 0);
-  canvas.drawImageRectOptions(
-    ctx.heroWeapon,
-    ctx.src16,
-    ctx.weaponDst,
-    FilterMode.Nearest,
-    MipmapMode.None,
-    ctx.weaponPaint,
-  );
+  if (world.player.weaponVisible) {
+    canvas.translate(rig.weaponGripOffsetX, rig.weaponGripOffsetY);
+    canvas.rotate(ctx.heroPose.weaponAngleDeg, 0, 0);
+    canvas.drawImageRectOptions(
+      ctx.heroWeapon,
+      ctx.src16,
+      ctx.weaponDst,
+      FilterMode.Nearest,
+      MipmapMode.None,
+      ctx.weaponPaint,
+    );
+  }
   canvas.restore();
 
   canvas.restore();

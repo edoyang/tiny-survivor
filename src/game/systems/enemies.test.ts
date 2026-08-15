@@ -18,6 +18,11 @@ const STATS: EnemyStats = {
 
 const CHASER: EnemyStats = { ...STATS, speed: 30 };
 
+function disablePlayerAttacks(world: World): void {
+  world.player.attackTimerTicks = Number.MAX_SAFE_INTEGER;
+  world.player.attackCooldownTicks = Number.MAX_SAFE_INTEGER;
+}
+
 function hitsOverTime(world: World, ticks: number): number[] {
   const hitTicks: number[] = [];
   let lastHp = world.player.hp;
@@ -33,6 +38,7 @@ function hitsOverTime(world: World, ticks: number): number[] {
 
 test('an enemy standing on the player hits once per its interval, never more', () => {
   const world = createWorld(1);
+  disablePlayerAttacks(world);
   spawnEnemy(world, STATS, 0, 0, 0);
   const hits = hitsOverTime(world, 600);
   assert.ok(hits.length >= 9 && hits.length <= 11, `got ${hits.length} hits`);
@@ -44,6 +50,7 @@ test('an enemy standing on the player hits once per its interval, never more', (
 
 test('two enemies arriving staggered keep independent timers forever', () => {
   const world = createWorld(1);
+  disablePlayerAttacks(world);
   const staggerTicks = 36;
   spawnEnemy(world, STATS, 0, 0, 0);
   const firstHits: number[] = [];
@@ -78,6 +85,7 @@ test('two enemies arriving staggered keep independent timers forever', () => {
 
 test('i-frames block a pile-up from deleting the player in one frame', () => {
   const world = createWorld(1);
+  disablePlayerAttacks(world);
   for (let n = 0; n < 10; n++) spawnEnemy(world, STATS, 0, 0, 0);
   advance(world);
   const afterOneTick = world.player.hp;

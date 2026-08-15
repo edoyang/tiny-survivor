@@ -18,6 +18,21 @@ Every place one reading of the spec was picked over another.
   a tick between enemies. Integer ticks make "two staggered enemies stay
   staggered forever" exact and testable. `attackInterval` in monsters.json
   stays in seconds; it is converted once at spawn.
+- **Priest magic missile is single-target, no explosion.** The brief's "not
+  exploding and deal an AoE" was read as: no explosion, no AoE, in contrast to
+  the wizard's explicitly-AoE fireball. Built single-target; if the owner meant
+  "explodes but no AoE damage", only the renderer needs a hit flash.
+- **A sword stops homing once it has hit its acquired target.** Piercing
+  continues in a straight line. With homing left on, a 900 deg/s sword orbited
+  its still-alive victim forever instead of passing through the crowd (caught
+  by the pierce test).
+- **Knight weapon visibility reads literally: hidden from volley start until
+  the next attack is ready.** Because attacks auto-fire the instant they are
+  ready, the sword is effectively only in-hand when no enemy is in acquire
+  range. The dwarf's axe reappears whenever no thrown axe is live.
+- **A new volley cannot start while the previous volley is still dispatching**
+  (relevant only at high volley counts where stagger x count approaches the
+  cooldown); pending shots are never dropped mid-volley.
 - **The boss is always the `monster` type.** waves.json brackets drive regular
   and elite type choice, but the periodic boss reads best as the biggest sprite
   in the pack scaled 2x, rather than a random bracket pick (a "boss slime" at

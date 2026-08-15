@@ -1,0 +1,42 @@
+{
+  "fireball": {
+    "damage": 12,
+    "speed": 170,
+    "radius": 4,
+    "aoeRadius": 36,
+    "range": 280
+  },
+  "sword": {
+    "damage": 8,
+    "speed": 230,
+    "radius": 5,
+    "pierce": 3,
+    "turnDegPerSec": 900,
+    "lifetimeSeconds": 2.5
+  },
+  "axe": {
+    "damage": 10,
+    "speed": 150,
+    "radius": 8,
+    "maxRange": 90,
+    "dwellSeconds": 1.0,
+    "rehitSeconds": 0.5,
+    "returnSpeedMult": 1.3
+  },
+  "orb": {
+    "damage": 6,
+    "radius": 9,
+    "orbitRadius": 34,
+    "orbitDegPerSec": 200,
+    "rehitSeconds": 0.5
+  },
+  "missile": {
+    "damage": 9,
+    "speed": 160,
+    "radius": 3,
+    "turnDegPerSec": 600,
+    "lifetimeSeconds": 3.0
+  },
+  "volley": { "staggerSeconds": 0.12 },
+  "acquireRange": 280
+}
