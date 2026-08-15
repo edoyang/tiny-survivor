@@ -22,7 +22,14 @@ and runs in bare Node:
 ```bash
 npm test
 npx tsc --noEmit
+node --expose-gc scripts/bench-sim.ts
 ```
+
+The last command benchmarks the simulation at the enemy cap and reports
+per-tick cost and heap growth.
+
+Start with `docs/PLAYTEST.md` — the handover section at the top explains what
+was verified, what was guessed, and which JSON key tunes each guess.
 
 ## Layout
 

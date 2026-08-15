@@ -74,6 +74,7 @@ export type RenderContext = {
 export const MONSTER_WALK_FRAMES = 3;
 export const FIREBALL_FRAMES = 8;
 const HALF_PI = Math.PI / 2;
+const CULL_MARGIN = 40;
 
 const NEAREST = { filter: FilterMode.Nearest };
 
@@ -244,15 +245,23 @@ export function drawWorld(
     NEAREST,
   );
 
+  const cullMinX = camX - ctx.viewWidth / 2 - CULL_MARGIN;
+  const cullMaxX = camX + ctx.viewWidth / 2 + CULL_MARGIN;
+  const cullMinY = camY - ctx.viewHeight / 2 - CULL_MARGIN;
+  const cullMaxY = camY + ctx.viewHeight / 2 + CULL_MARGIN;
+
   const gems = world.gems;
+  let gemDrawCount = 0;
   for (let i = 0; i < gems.count; i++) {
     const gem = gems.items[i];
     const gx = lerp(gem.prevX, gem.pos.x, alpha);
     const gy = lerp(gem.prevY, gem.pos.y, alpha);
-    ctx.gemSrcs[i] = ctx.gemRect;
-    ctx.gemXforms[i].set(1, 0, gx - 3, gy - 3);
+    if (gx < cullMinX || gx > cullMaxX || gy < cullMinY || gy > cullMaxY) continue;
+    ctx.gemSrcs[gemDrawCount] = ctx.gemRect;
+    ctx.gemXforms[gemDrawCount].set(1, 0, gx - 3, gy - 3);
+    gemDrawCount++;
   }
-  for (let i = gems.count; i < GEM_CAP; i++) {
+  for (let i = gemDrawCount; i < GEM_CAP; i++) {
     ctx.gemXforms[i].set(0, 0, 0, 0);
   }
   canvas.drawAtlas(
@@ -267,16 +276,19 @@ export function drawWorld(
 
   const enemies = world.enemies;
   const animFps = tuning.enemies.animFps;
+  let enemyDrawCount = 0;
   for (let i = 0; i < enemies.count; i++) {
     const e = enemies.items[i];
     const ex = lerp(e.prevX, e.pos.x, alpha);
     const ey = lerp(e.prevY, e.pos.y, alpha);
+    if (ex < cullMinX || ex > cullMaxX || ey < cullMinY || ey > cullMaxY) continue;
     const frame =
       Math.floor(world.time * animFps + e.animPhase * MONSTER_WALK_FRAMES) % MONSTER_WALK_FRAMES;
-    ctx.enemySrcs[i] = ctx.monsterRects[e.type][frame][e.facing === 1 ? 1 : 0];
-    ctx.enemyXforms[i].set(e.scale, 0, ex - 12 * e.scale, ey - 12 * e.scale);
+    ctx.enemySrcs[enemyDrawCount] = ctx.monsterRects[e.type][frame][e.facing === 1 ? 1 : 0];
+    ctx.enemyXforms[enemyDrawCount].set(e.scale, 0, ex - 12 * e.scale, ey - 12 * e.scale);
+    enemyDrawCount++;
   }
-  for (let i = enemies.count; i < ENEMY_CAP; i++) {
+  for (let i = enemyDrawCount; i < ENEMY_CAP; i++) {
     ctx.enemyXforms[i].set(0, 0, 0, 0);
   }
   canvas.drawAtlas(
@@ -297,6 +309,7 @@ export function drawWorld(
     const p = projectiles.items[i];
     const cx = lerp(p.prevX, p.pos.x, alpha);
     const cy = lerp(p.prevY, p.pos.y, alpha);
+    if (cx < cullMinX || cx > cullMaxX || cy < cullMinY || cy > cullMaxY) continue;
     const xform = ctx.projXforms[projDrawCount];
     if (p.kind === PROJ_FIREBALL) {
       const frame =

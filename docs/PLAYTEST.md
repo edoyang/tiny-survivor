@@ -1,5 +1,71 @@
 # PLAYTEST.md
 
+## HANDOVER — read this first
+
+### How to run it
+
+```bash
+npm install
+npx expo run:android
+```
+
+Skia is not available in Expo Go; it must be a dev build. For a release
+build: `npx expo run:android --variant release`. Neither could be run in the
+build environment (no Android SDK, no device) — the shipped verification is
+`npx tsc --noEmit`, `npm test` (57 tests), and
+`npx expo export --platform android`, all green at every phase commit.
+
+### What was never verified, stated plainly
+
+- **Nobody has ever seen this game run.** Every phase was verified by unit
+  tests on the pure simulation and by the bundler, never on a screen. The
+  first launch you do is the first launch, period.
+- **All feel numbers are guesses.** Every one lives in
+  `src/game/data/tuning.json` (feel), `classes.json` / `weapons.json` /
+  `monsters.json` / `waves.json` / `upgrades.json` (balance). The sections
+  below name each key, its shipped value, and what to change if it feels
+  wrong. Nothing needs a code edit.
+- **Class balance is a guess**: wizard > knight > dwarf > priest is my
+  ranking on paper, unverified (Phase 6 section).
+- **Frame rate on device is unmeasured.** The sim itself costs ~8 us per
+  60 Hz tick in Node on this machine with ~190 live enemies
+  (`node --expose-gc scripts/bench-sim.ts` to re-run), which leaves the whole
+  frame budget for rendering — but Hermes and the GPU were never profiled.
+  The renderer draws everything in 4 drawAtlas batches + 2 hero sprites +
+  2 joystick circles per frame, with off-view entities culled, so batching
+  is structurally right; whether it holds 60 fps at the 200-enemy cap on
+  your phone is unknown. If it stutters, lower `concurrentCap` in
+  `waves.json` first.
+- **Allocation in the hot loop**: verified in Node — retained heap is flat
+  over 6000-tick runs at enemy cap; the V8 allocation profiler samples only
+  transient boxed-number noise (~20 B/tick), no objects. Hermes was not
+  profiled.
+- **The renderer records one SkPicture per frame** (unavoidable garbage of
+  the picture-per-frame pattern, outside the sim). If device profiling shows
+  GC hitches, the fix is moving to Skia buffers/worklets — noted in
+  BACKLOG.md, not done.
+
+### Decisions where I picked one reading (full list in DECISIONS.md)
+
+- Priest missile is single-target, no explosion of any kind.
+- Monster frame 3 is a death frame, excluded from the walk loop (verified
+  visually, so walk cycles are 3 frames, not 4).
+- Knight's sword stops homing after it hits its acquired target, then flies
+  straight while piercing.
+- Knight weapon literally reappears only when the next attack is ready — in
+  combat that means his hand is usually empty; if that looks wrong in play,
+  say so and it becomes "reappear after the volley's last sword despawns".
+- The periodic boss is always the big blue `monster` sprite at 2x.
+- At the 200-enemy cap, the farthest enemy is recycled to the spawn ring.
+
+### Unresolved blockers (full list in BLOCKERS.md)
+
+- No priest staff sprite — priest carries a gold-tinted wand.
+- No XP gem sprite — gems are a drawn 6 px diamond.
+- No magic missile sprite — missiles are a drawn 6 px bolt.
+- docs.expo.dev was unreachable from the build environment; Expo usage was
+  written against the installed SDK 57 package sources instead.
+
 Every number in the game that can only be judged by playing it, with the
 `data/tuning.json` key that changes it. The owner's punch-list.
 
