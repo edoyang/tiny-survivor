@@ -17,6 +17,7 @@ import { accumulate, interpolationAlpha } from '../game/step.ts';
 import { buildAtlas, makeGemImage, makeMissileImage, type AtlasEntry } from './atlas.ts';
 import { createRenderContext, drawWorld } from './drawWorld.ts';
 import { createJoystick, joystickInput } from './joystick.ts';
+import { attachKeyboard } from './keyboard';
 import {
   FIREBALL_IMAGE,
   HERO_IMAGES,
@@ -36,6 +37,9 @@ export function GameCanvas({ world, paused }: { world: World; paused: { current:
   const { width, height } = useWindowDimensions();
   const picture = useSharedValue<SkPicture>(emptyPicture());
   const [joystick] = useState(createJoystick);
+  const [keyboardInput] = useState(() => ({ x: 0, y: 0 }));
+
+  useEffect(() => attachKeyboard(keyboardInput), [keyboardInput]);
   const cls = classes[world.player.classId];
   const tile42 = useImage(TILE_IMAGES.tile_0042);
   const tile48 = useImage(TILE_IMAGES.tile_0048);
@@ -120,6 +124,10 @@ export function GameCanvas({ world, paused }: { world: World; paused: { current:
           tuning.joystick.deadZone,
           world.player.moveInput,
         );
+        if (world.player.moveInput.x === 0 && world.player.moveInput.y === 0) {
+          world.player.moveInput.x = keyboardInput.x;
+          world.player.moveInput.y = keyboardInput.y;
+        }
         if (!paused.current) accumulate(world, (now - last) / 1000);
         const recorder = Skia.PictureRecorder();
         const recordingCanvas = recorder.beginRecording(ctx.bounds);

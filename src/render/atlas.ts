@@ -22,7 +22,7 @@ export function buildAtlas(entries: AtlasEntry[]): SpriteAtlas {
     if (e.image.height() > height) height = e.image.height();
   }
   height += PADDING * 2;
-  const surface = Skia.Surface.MakeOffscreen(width, height);
+  const surface = Skia.Surface.Make(width, height);
   if (surface === null) {
     throw new Error(`atlas offscreen surface ${width}x${height} failed`);
   }
@@ -53,7 +53,7 @@ export function buildAtlas(entries: AtlasEntry[]): SpriteAtlas {
 
 export function makeMissileImage(color: string): SkImage {
   const size = 6;
-  const surface = Skia.Surface.MakeOffscreen(size, size);
+  const surface = Skia.Surface.Make(size, size);
   if (surface === null) {
     throw new Error('missile surface failed');
   }
@@ -70,7 +70,7 @@ export function makeMissileImage(color: string): SkImage {
 
 export function makeGemImage(color: string): SkImage {
   const size = 6;
-  const surface = Skia.Surface.MakeOffscreen(size, size);
+  const surface = Skia.Surface.Make(size, size);
   if (surface === null) {
     throw new Error('gem surface failed');
   }

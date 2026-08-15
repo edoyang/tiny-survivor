@@ -4,22 +4,37 @@
 
 ### How to run it
 
+On a phone (the real target):
+
 ```bash
 npm install
 npx expo run:android
 ```
 
 Skia is not available in Expo Go; it must be a dev build. For a release
-build: `npx expo run:android --variant release`. Neither could be run in the
-build environment (no Android SDK, no device) — the shipped verification is
-`npx tsc --noEmit`, `npm test` (57 tests), and
-`npx expo export --platform android`, all green at every phase commit.
+build: `npx expo run:android --variant release`. iOS needs a Mac or EAS.
+
+On a Windows laptop (test target, browser):
+
+```bash
+npm install
+npm run web
+```
+
+Move with WASD/arrows or mouse-drag joystick. Verification shipped with the
+repo: `npx tsc --noEmit`, `npm test` (57 tests),
+`npx expo export --platform android`, and `npx expo export --platform web`,
+all green — plus a scripted Chromium session against the web export.
 
 ### What was never verified, stated plainly
 
-- **Nobody has ever seen this game run.** Every phase was verified by unit
-  tests on the pure simulation and by the bundler, never on a screen. The
-  first launch you do is the first launch, period.
+- **The game has never run on a phone.** Every phase was verified by unit
+  tests on the pure simulation and by the bundler. After web support was
+  added, a scripted Chromium session verified the game *in a browser*: menu,
+  class select, floor tiling, keyboard movement, enemies chasing, sword and
+  fireball flight, gem drops, the level-up overlay (three cards, pick,
+  resume), and pause all render and work. Touch input, device frame rate,
+  and everything below still had no device test.
 - **All feel numbers are guesses.** Every one lives in
   `src/game/data/tuning.json` (feel), `classes.json` / `weapons.json` /
   `monsters.json` / `waves.json` / `upgrades.json` (balance). The sections
@@ -65,6 +80,15 @@ build environment (no Android SDK, no device) — the shipped verification is
 - No magic missile sprite — missiles are a drawn 6 px bolt.
 - docs.expo.dev was unreachable from the build environment; Expo usage was
   written against the installed SDK 57 package sources instead.
+
+### Windows-laptop testing notes
+
+- The web build exists so runs can be tested without a phone. Keyboard
+  (WASD/arrows) works alongside the mouse-drag joystick; keyboard is
+  web-only and compiled out of native builds.
+- Judge *feel* on the phone, not the laptop: browser timing, input latency
+  and pixel scaling all differ. Balance (spawn pressure, class damage,
+  upgrade pacing) is fair to judge in the browser.
 
 Every number in the game that can only be judged by playing it, with the
 `data/tuning.json` key that changes it. The owner's punch-list.

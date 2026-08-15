@@ -6,13 +6,31 @@ automatically.
 
 ## Running it
 
-The renderer uses `@shopify/react-native-skia`, which is **not available in Expo Go**.
-Use a development build:
+The game targets phones first (Android/iOS, portrait, one thumb). The renderer
+uses `@shopify/react-native-skia`, which is **not available in Expo Go** — use a
+development build:
 
 ```bash
 npm install
 npx expo run:android
 ```
+
+iOS (`npx expo run:ios`) requires a Mac or an EAS build.
+
+## Testing on a Windows laptop
+
+The game also runs in a browser via Skia's CanvasKit/WASM build, so it can be
+tried without a phone or emulator:
+
+```bash
+npm install
+npm run web
+```
+
+`npm install` copies `canvaskit.wasm` into `public/` (postinstall). In the
+browser you can play with the mouse (drag = joystick) or the keyboard:
+WASD / arrow keys to move. The browser build exists for testing — the phone
+is the real target, and feel judgements should be made there.
 
 ## Testing
 

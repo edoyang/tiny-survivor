@@ -2,6 +2,24 @@
 
 Every place one reading of the spec was picked over another.
 
+## Web / Windows-laptop support (post-Phase 8)
+
+- **The browser build is a test target, not a product target.** Portrait phone
+  stays the design; web exists so the owner can try the game on a Windows
+  laptop without a device. Keyboard (WASD/arrows) is web-only, wired through a
+  platform-forked module (`keyboard.web.ts` / `keyboard.ts` no-op).
+- **CanvasKit loads before any route renders.** On web,
+  `Skia = JsiSkApi(global.CanvasKit)` is captured at module import, so the
+  root layout blocks rendering until `LoadSkiaWeb()` resolves. The wasm file
+  is copied to `public/` by the `postinstall` script rather than committed
+  (8 MB binary).
+- **The sprite atlas is built on a CPU raster surface (`Surface.Make`), not
+  `MakeOffscreen`.** On web, `MakeOffscreen` uses a separate WebGL context and
+  its snapshots silently draw nothing on the main canvas - the floor, enemies
+  and gems were invisible in the first browser run. A raster surface works on
+  both platforms; the atlas is built once at boot, so the CPU path costs
+  nothing per frame.
+
 ## Phase 0
 
 - **Monster frame 3 is a death frame, not part of the walk loop.** The brief said

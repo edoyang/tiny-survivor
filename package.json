@@ -39,6 +39,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "node --test",
+    "postinstall": "setup-skia-web public",
     "lint": "expo lint"
   },
   "private": true
