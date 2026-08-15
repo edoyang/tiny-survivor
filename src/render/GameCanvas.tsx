@@ -12,53 +12,19 @@ import { useSharedValue } from 'react-native-reanimated';
 import classes from '../game/data/classes.json' with { type: 'json' };
 import tuning from '../game/data/tuning.json' with { type: 'json' };
 import { MONSTER_SPRITES } from '../game/entities/monsterTypes.ts';
-import { CLASS_KNIGHT, createWorld } from '../game/state.ts';
+import type { World } from '../game/state.ts';
 import { accumulate, interpolationAlpha } from '../game/step.ts';
 import { buildAtlas, makeGemImage, makeMissileImage, type AtlasEntry } from './atlas.ts';
 import { createRenderContext, drawWorld } from './drawWorld.ts';
 import { createJoystick, joystickInput } from './joystick.ts';
-
-const HERO_IMAGES: Record<string, number> = {
-  wizard: require('@/assets/sprites/HERO/wizard.png'),
-  knight: require('@/assets/sprites/HERO/knight.png'),
-  dwarf: require('@/assets/sprites/HERO/dwarf.png'),
-  priest: require('@/assets/sprites/HERO/priest.png'),
-};
-
-const WEAPON_IMAGES: Record<string, number> = {
-  wand: require('@/assets/sprites/Equipment/wand.png'),
-  sword: require('@/assets/sprites/Equipment/sword.png'),
-  axe: require('@/assets/sprites/Equipment/axe.png'),
-};
-
-const MONSTER_IMAGES: number[][] = [
-  [
-    require('@/assets/sprites/M_Slime/tile_0000.png'),
-    require('@/assets/sprites/M_Slime/tile_0001.png'),
-    require('@/assets/sprites/M_Slime/tile_0002.png'),
-    require('@/assets/sprites/M_Slime/tile_0003.png'),
-  ],
-  [
-    require('@/assets/sprites/M_Fly/tile_0004.png'),
-    require('@/assets/sprites/M_Fly/tile_0005.png'),
-    require('@/assets/sprites/M_Fly/tile_0006.png'),
-    require('@/assets/sprites/M_Fly/tile_0007.png'),
-  ],
-  [
-    require('@/assets/sprites/M_Bunny/tile_0008.png'),
-    require('@/assets/sprites/M_Bunny/tile_0009.png'),
-    require('@/assets/sprites/M_Bunny/tile_0010.png'),
-    require('@/assets/sprites/M_Bunny/tile_0011.png'),
-  ],
-  [
-    require('@/assets/sprites/M_Monster/tile_0012.png'),
-    require('@/assets/sprites/M_Monster/tile_0013.png'),
-    require('@/assets/sprites/M_Monster/tile_0014.png'),
-    require('@/assets/sprites/M_Monster/tile_0015.png'),
-  ],
-];
-
-const CLASS_ID = CLASS_KNIGHT;
+import {
+  FIREBALL_IMAGE,
+  HERO_IMAGES,
+  MONSTER_IMAGES,
+  ORB_IMAGE,
+  TILE_IMAGES,
+  WEAPON_IMAGES,
+} from './sources.ts';
 
 function emptyPicture(): SkPicture {
   const recorder = Skia.PictureRecorder();
@@ -66,20 +32,20 @@ function emptyPicture(): SkPicture {
   return recorder.finishRecordingAsPicture();
 }
 
-export function GameCanvas() {
+export function GameCanvas({ world, paused }: { world: World; paused: { current: boolean } }) {
   const { width, height } = useWindowDimensions();
   const picture = useSharedValue<SkPicture>(emptyPicture());
   const [joystick] = useState(createJoystick);
-  const tile42 = useImage(require('@/assets/sprites/T_Dungeon/tile_0042.png'));
-  const tile48 = useImage(require('@/assets/sprites/T_Dungeon/tile_0048.png'));
-  const tile49 = useImage(require('@/assets/sprites/T_Dungeon/tile_0049.png'));
-  const cls = classes[CLASS_ID];
+  const cls = classes[world.player.classId];
+  const tile42 = useImage(TILE_IMAGES.tile_0042);
+  const tile48 = useImage(TILE_IMAGES.tile_0048);
+  const tile49 = useImage(TILE_IMAGES.tile_0049);
   const heroBody = useImage(HERO_IMAGES[cls.id]);
   const heroWeapon = useImage(WEAPON_IMAGES[cls.weapon]);
   const swordImg = useImage(WEAPON_IMAGES.sword);
   const axeImg = useImage(WEAPON_IMAGES.axe);
-  const fireballImg = useImage(require('@/assets/sprites/Projectile/fireball_strip.png'));
-  const orbImg = useImage(require('@/assets/sprites/Projectile/orb.png'));
+  const fireballImg = useImage(FIREBALL_IMAGE);
+  const orbImg = useImage(ORB_IMAGE);
   const slime0 = useImage(MONSTER_IMAGES[0][0]);
   const slime1 = useImage(MONSTER_IMAGES[0][1]);
   const slime2 = useImage(MONSTER_IMAGES[0][2]);
@@ -142,15 +108,19 @@ export function GameCanvas() {
       weapon: heroWeapon,
       tinted: cls.weaponTinted,
     });
-    const world = createWorld(Date.now() >>> 0, CLASS_ID);
     world.viewWidth = ctx.viewWidth;
     world.viewHeight = ctx.viewHeight;
     let raf = 0;
     let last = -1;
     const frame = (now: number) => {
       if (last >= 0) {
-        joystickInput(joystick, tuning.joystick.radius, tuning.joystick.deadZone, world.player.moveInput);
-        accumulate(world, (now - last) / 1000);
+        joystickInput(
+          joystick,
+          tuning.joystick.radius,
+          tuning.joystick.deadZone,
+          world.player.moveInput,
+        );
+        if (!paused.current) accumulate(world, (now - last) / 1000);
         const recorder = Skia.PictureRecorder();
         const recordingCanvas = recorder.beginRecording(ctx.bounds);
         drawWorld(recordingCanvas, ctx, world, interpolationAlpha(world), joystick);
@@ -192,6 +162,8 @@ export function GameCanvas() {
     height,
     joystick,
     picture,
+    world,
+    paused,
   ]);
 
   const pan = Gesture.Pan()

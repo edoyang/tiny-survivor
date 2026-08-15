@@ -26,15 +26,25 @@ function fireOneShot(world: World): void {
   const target = world.enemies.items[targetIdx];
   const dirX = target.pos.x - p.pos.x;
   const dirY = target.pos.y - p.pos.y;
+  let shot = null;
   if (p.classId === CLASS_WIZARD) {
-    spawnFireball(world, p.pos.x, p.pos.y, dirX, dirY);
+    shot = spawnFireball(world, p.pos.x, p.pos.y, dirX, dirY);
   } else if (p.classId === CLASS_KNIGHT) {
-    spawnSword(world, p.pos.x, p.pos.y, dirX, dirY, target.id, weapons.sword.pierce);
+    shot = spawnSword(
+      world,
+      p.pos.x,
+      p.pos.y,
+      dirX,
+      dirY,
+      target.id,
+      weapons.sword.pierce + p.bonusPierce,
+    );
   } else if (p.classId === CLASS_DWARF) {
-    spawnAxe(world, p.pos.x, p.pos.y, dirX, dirY);
+    shot = spawnAxe(world, p.pos.x, p.pos.y, dirX, dirY);
   } else {
-    spawnMissile(world, p.pos.x, p.pos.y, dirX, dirY, target.id);
+    shot = spawnMissile(world, p.pos.x, p.pos.y, dirX, dirY, target.id);
   }
+  if (shot !== null) shot.damage *= p.damageMult;
 }
 
 export function updatePlayerAttack(world: World, dt: number): void {

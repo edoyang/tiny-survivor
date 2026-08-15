@@ -27,6 +27,7 @@
     "missileColor": "#c9a7ff"
   },
   "player": { "iFrameSeconds": 0.4 },
+  "leveling": { "baseXpToLevel": 6, "xpGrowthPerLevel": 4 },
   "pickup": { "radius": 40, "magnetSpeed": 140, "collectRadius": 6, "gemColor": "#5ee9a0" },
   "floor": {
     "tiles": ["tile_0042", "tile_0048", "tile_0049"],

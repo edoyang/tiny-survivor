@@ -1,4 +1,6 @@
 import classes from './data/classes.json' with { type: 'json' };
+import tuning from './data/tuning.json' with { type: 'json' };
+import upgrades from './data/upgrades.json' with { type: 'json' };
 import { createPool, poolClear, type Pool } from './pool.ts';
 import { createRng, type Rng } from './rng.ts';
 import { createSpatialHash, type SpatialHash } from './spatial.ts';
@@ -33,7 +35,17 @@ export type Player = {
   volleyShotsLeft: number;
   nextVolleyShotTick: number;
   weaponVisible: boolean;
+  damageMult: number;
+  cooldownMult: number;
+  aoeMult: number;
+  bonusPierce: number;
+  pickupMult: number;
 };
+
+export const STATUS_RUNNING = 0;
+export const STATUS_LEVELUP = 1;
+export const STATUS_DEAD = 2;
+export const UPGRADE_OFFER_SLOTS = 3;
 
 export type Camera = {
   pos: Vec2;
@@ -150,6 +162,11 @@ export type World = {
   spawn: SpawnState;
   xp: number;
   kills: number;
+  level: number;
+  xpToNext: number;
+  status: number;
+  upgradeOffer: Int32Array;
+  upgradeStacks: Int32Array;
 };
 
 export const DEFAULT_VIEW_WIDTH = 360;
@@ -213,6 +230,11 @@ function createPlayer(classId: number): Player {
     volleyShotsLeft: 0,
     nextVolleyShotTick: 0,
     weaponVisible: true,
+    damageMult: 1,
+    cooldownMult: 1,
+    aoeMult: 1,
+    bonusPierce: 0,
+    pickupMult: 1,
   };
 }
 
@@ -277,6 +299,11 @@ export function createWorld(seed: number, classId: number = CLASS_KNIGHT): World
     spawn: createSpawnState(),
     xp: 0,
     kills: 0,
+    level: 1,
+    xpToNext: tuning.leveling.baseXpToLevel,
+    status: STATUS_RUNNING,
+    upgradeOffer: new Int32Array(UPGRADE_OFFER_SLOTS).fill(-1),
+    upgradeStacks: new Int32Array(upgrades.length),
   };
 }
 
@@ -311,6 +338,11 @@ export function resetWorld(world: World, seed: number, classId: number = CLASS_K
   p.volleyShotsLeft = 0;
   p.nextVolleyShotTick = 0;
   p.weaponVisible = true;
+  p.damageMult = 1;
+  p.cooldownMult = 1;
+  p.aoeMult = 1;
+  p.bonusPierce = 0;
+  p.pickupMult = 1;
   world.camera.pos.x = 0;
   world.camera.pos.y = 0;
   world.camera.prevX = 0;
@@ -333,4 +365,9 @@ export function resetWorld(world: World, seed: number, classId: number = CLASS_K
   world.spawn.nextBossTick = 0;
   world.xp = 0;
   world.kills = 0;
+  world.level = 1;
+  world.xpToNext = tuning.leveling.baseXpToLevel;
+  world.status = STATUS_RUNNING;
+  world.upgradeOffer.fill(-1);
+  world.upgradeStacks.fill(0);
 }

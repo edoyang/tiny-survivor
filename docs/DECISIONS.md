@@ -18,6 +18,11 @@ Every place one reading of the spec was picked over another.
   a tick between enemies. Integer ticks make "two staggered enemies stay
   staggered forever" exact and testable. `attackInterval` in monsters.json
   stays in seconds; it is converted once at spawn.
+- **Level-up offers are drawn without replacement from upgrades below their
+  stack cap.** If fewer than three remain, fewer cards show; if none remain,
+  the level-up resolves silently and play continues.
+- **Banked XP chains level-ups**: picking a card resumes the sim for one tick;
+  if the xp bar is still over threshold the next overlay appears immediately.
 - **Priest magic missile is single-target, no explosion.** The brief's "not
   exploding and deal an AoE" was read as: no explosion, no AoE, in contrast to
   the wizard's explicitly-AoE fireball. Built single-target; if the owner meant

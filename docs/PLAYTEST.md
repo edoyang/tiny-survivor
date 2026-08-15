@@ -83,6 +83,20 @@ yours to judge; each line names the bracket to edit.
 - **Concurrent cap**: `concurrentCap` = 200. At cap the farthest enemy is
   recycled to the spawn ring. Raise only after profiling on device.
 
+## Phase 7 — progression
+
+- **XP curve**: `tuning.json` `leveling.baseXpToLevel` = 6,
+  `leveling.xpGrowthPerLevel` = 4 (level N needs 6 + 4(N-1) xp). With slime
+  xp 1, that is roughly a level every 15-20 early kills. If level-ups feel
+  rare in minute one, drop base to 5; if they spam, raise growth to 6.
+- **Upgrade amounts** in `data/upgrades.json`: +1 volley (max 3), +25% damage
+  (max 5), -12% cooldown (max 5), +25% blast (max 4), +1 pierce (max 4),
+  +10% speed (max 4), +20 hp (max 5), +30% pickup (max 4). All guesses; the
+  volley cap of 3 is the one most likely to warp balance (4 axes dwelling in
+  a crowd is a lot of free damage).
+- HUD refreshes at ~7 Hz from a snapshot diff, not per frame. If bars feel
+  laggy, the interval is in `src/app/game.tsx` (150 ms).
+
 ## Phase 6 — class weapons (all in `data/weapons.json` unless noted)
 
 Every number is a guess. Honest strength ranking guess, unverified by play:

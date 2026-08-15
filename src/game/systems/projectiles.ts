@@ -82,7 +82,7 @@ function turnToward(p: Projectile, targetX: number, targetY: number, maxTurnRad:
 
 function explodeFireball(world: World, p: Projectile): void {
   const hash = world.enemyHash;
-  const aoe = weapons.fireball.aoeRadius;
+  const aoe = weapons.fireball.aoeRadius * world.player.aoeMult;
   queryCircle(hash, p.pos.x, p.pos.y, aoe + ENEMY_QUERY_PAD);
   sortQueryResultsDescending(hash);
   for (let q = 0; q < hash.queryCount; q++) {
@@ -266,6 +266,6 @@ export function updateOrb(world: World): void {
     if (dx * dx + dy * dy > reach * reach) continue;
     if (!rehitReady(orb.rehitIds, orb.rehitNextTick, orb.rehitCount, e.id, world.tick)) continue;
     rehitMark(orb, e.id, world.tick, ORB_REHIT_TICKS);
-    damageEnemy(world, idx, weapons.orb.damage);
+    damageEnemy(world, idx, weapons.orb.damage * world.player.damageMult);
   }
 }

@@ -5,7 +5,7 @@ import type { World } from '../state.ts';
 export function updateGems(world: World, dt: number): void {
   const p = world.player;
   const pool = world.gems;
-  const magnetRadius = tuning.pickup.radius;
+  const magnetRadius = tuning.pickup.radius * p.pickupMult;
   const collectRadius = tuning.pickup.collectRadius;
   const magnetSpeed = tuning.pickup.magnetSpeed;
   for (let i = pool.count - 1; i >= 0; i--) {
