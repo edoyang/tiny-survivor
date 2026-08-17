@@ -1,124 +1,186 @@
-import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { test } from 'node:test';
 import waves from '../data/waves.json' with { type: 'json' };
 import { spawnEnemy } from '../entities/enemies.ts';
 import { MONSTER_STATS } from '../entities/monsterTypes.ts';
-import { createWorld, FIXED_DT } from '../state.ts';
+import { BOSS_FINAL, BOSS_MINI, STATUS_WON } from '../kinds.ts';
+import { createWorld, FIXED_DT, type World } from '../state.ts';
 import { advance } from '../step.ts';
+import { damageEnemy } from './damage.ts';
 import { CONCURRENT_CAP, spawnRingRadius } from './spawning.ts';
 
-test('regular spawns land on the ring just outside the view', () => {
+function silentPlayer(world: World): void {
+  world.player.attackTimerTicks = Number.MAX_SAFE_INTEGER;
+  world.player.attackCooldownTicks = Number.MAX_SAFE_INTEGER;
+}
+
+function jumpTo(world: World, seconds: number): void {
+  world.tick = Math.round(seconds / FIXED_DT);
+  world.time = world.tick * FIXED_DT;
+}
+
+function quietSpawner(world: World): void {
+  world.spawn.nextPackTick = Number.MAX_SAFE_INTEGER;
+  world.spawn.nextEliteTick = Number.MAX_SAFE_INTEGER;
+  world.spawn.hordeIndex = waves.hordes.length;
+}
+
+function hpScaleAt(seconds: number): number {
+  for (const pack of waves.packs) {
+    if (seconds < pack.untilSeconds) return pack.hpScale;
+  }
+  return waves.packs[waves.packs.length - 1].hpScale;
+}
+
+function bossOnField(world: World, tag: number): number {
+  for (let i = 0; i < world.enemies.count; i++) {
+    if (world.enemies.items[i].boss === tag) return i;
+  }
+  return -1;
+}
+
+test('enemies arrive in packs, never one at a time', () => {
   const world = createWorld(7);
+  silentPlayer(world);
+  const firstPack = waves.packs[0];
+  let previous = 0;
+  const groupSizes: number[] = [];
+  for (let t = 0; t < Math.round(20 / FIXED_DT); t++) {
+    advance(world);
+    if (world.enemies.count > previous) groupSizes.push(world.enemies.count - previous);
+    previous = world.enemies.count;
+  }
+  assert.ok(groupSizes.length >= 2, `only ${groupSizes.length} spawn events in 20s`);
+  for (const size of groupSizes) {
+    assert.equal(size, firstPack.packSize, 'a spawn event should place a whole pack in one tick');
+  }
+});
+
+test('a pack lands on one arc of the ring, just outside the view', () => {
+  const world = createWorld(7);
+  silentPlayer(world);
   const ring = spawnRingRadius(world);
   const halfDiagonal = Math.sqrt((world.viewWidth / 2) ** 2 + (world.viewHeight / 2) ** 2);
-  let seenSpawns = 0;
-  let lastCount = 0;
-  for (let t = 0; t < 300; t++) {
-    advance(world);
-    for (let i = lastCount; i < world.enemies.count; i++) {
-      const e = world.enemies.items[i];
-      const dx = e.pos.x - world.camera.pos.x;
-      const dy = e.pos.y - world.camera.pos.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      assert.ok(dist > halfDiagonal, `spawned inside the view at ${dist}`);
-      assert.ok(dist < ring + 40, `spawned far beyond the ring at ${dist}`);
-      seenSpawns++;
-    }
-    lastCount = world.enemies.count;
-  }
-  assert.ok(seenSpawns >= 4);
-});
-
-test('spawn count tracks the bracket rate exactly', () => {
-  const world = createWorld(7);
-  const seconds = 10;
-  for (let t = 0; t < seconds * 60; t++) advance(world);
-  const expected = Math.floor(waves.brackets[0].spawnsPerSecond * seconds);
-  assert.equal(world.enemies.count, expected);
-});
-
-test('spawned types come only from the active bracket', () => {
-  const world = createWorld(7);
-  for (let t = 0; t < 600; t++) advance(world);
-  const allowed = new Set([0, 1]);
-  for (let i = 0; i < world.enemies.count; i++) {
-    assert.ok(allowed.has(world.enemies.items[i].type));
-  }
-});
-
-test('later brackets unlock later types', () => {
-  const world = createWorld(7);
-  world.tick = Math.round(120 / FIXED_DT);
-  world.spawn.nextBurstTick = Number.MAX_SAFE_INTEGER;
-  world.spawn.nextEliteTick = Number.MAX_SAFE_INTEGER;
-  world.spawn.nextBossTick = Number.MAX_SAFE_INTEGER;
-  for (let t = 0; t < 1200; t++) advance(world);
-  const seen = new Set<number>();
-  for (let i = 0; i < world.enemies.count; i++) {
-    seen.add(world.enemies.items[i].type);
-  }
-  assert.ok(seen.has(3), 'bracket at 120s should include the monster type');
-});
-
-test('a burst spawns a group of one type from one direction', () => {
-  const world = createWorld(7);
-  world.spawn.nextBurstTick = 5;
-  world.spawn.nextEliteTick = Number.MAX_SAFE_INTEGER;
-  world.spawn.nextBossTick = Number.MAX_SAFE_INTEGER;
-  for (let t = 0; t < 5; t++) advance(world);
-  assert.ok(world.enemies.count >= waves.burst.count);
-  const types = new Set<number>();
+  const packTicks = Math.round(waves.packs[0].intervalSeconds / FIXED_DT);
+  for (let t = 0; t <= packTicks; t++) advance(world);
+  assert.equal(world.enemies.count, waves.packs[0].packSize);
   const angles: number[] = [];
   for (let i = 0; i < world.enemies.count; i++) {
     const e = world.enemies.items[i];
-    types.add(e.type);
-    angles.push(Math.atan2(e.prevY - world.camera.pos.y, e.prevX - world.camera.pos.x));
+    const dx = e.prevX - world.camera.prevX;
+    const dy = e.prevY - world.camera.prevY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    assert.ok(dist > halfDiagonal, `spawned inside the view at ${dist}`);
+    assert.ok(dist < ring + 40, `spawned far beyond the ring at ${dist}`);
+    angles.push(Math.atan2(dy, dx));
   }
-  assert.equal(types.size, 1);
-  const arcRad = (waves.burst.arcDegrees * Math.PI) / 180;
+  const arcRad = (waves.packs[0].arcDegrees * Math.PI) / 180;
   for (const angle of angles) {
     let delta = angle - angles[0];
     while (delta > Math.PI) delta -= Math.PI * 2;
     while (delta < -Math.PI) delta += Math.PI * 2;
-    assert.ok(Math.abs(delta) <= arcRad + 0.05, `angle spread ${delta}`);
+    assert.ok(Math.abs(delta) <= arcRad + 0.05, `pack spread ${delta}`);
   }
 });
 
-test('an elite spawns bigger, tougher, and worth more xp', () => {
-  const world = createWorld(7);
-  world.spawn.nextEliteTick = 5;
-  world.spawn.nextBurstTick = Number.MAX_SAFE_INTEGER;
-  world.spawn.nextBossTick = Number.MAX_SAFE_INTEGER;
-  for (let t = 0; t < 5; t++) advance(world);
-  let elite = null;
-  for (let i = 0; i < world.enemies.count; i++) {
-    if (world.enemies.items[i].scale === waves.elite.scale) elite = world.enemies.items[i];
+test('pack pressure rises as the run goes on', () => {
+  for (let i = 1; i < waves.packs.length; i++) {
+    const previous = waves.packs[i - 1];
+    const current = waves.packs[i];
+    assert.ok(current.untilSeconds > previous.untilSeconds, `bracket ${i} does not advance in time`);
+    assert.ok(current.packSize >= previous.packSize, `bracket ${i} shrinks the pack`);
+    assert.ok(
+      current.intervalSeconds <= previous.intervalSeconds,
+      `bracket ${i} slows the spawn rate`,
+    );
   }
-  assert.ok(elite, 'no elite found');
-  const base = MONSTER_STATS[elite.type];
-  assert.equal(elite.maxHp, Math.round(base.hp * waves.elite.hpMult));
-  assert.equal(elite.contactDamage, base.damage * waves.elite.damageMult);
-  assert.equal(elite.xp, base.xp * waves.elite.xpMult);
-  assert.equal(elite.radius, base.radius * waves.elite.scale);
 });
 
-test('the boss spawns as a scaled-up monster with a huge pool', () => {
+test('a horde encircles the player instead of arriving from one side', () => {
   const world = createWorld(7);
-  world.spawn.nextBossTick = 5;
-  world.spawn.nextBurstTick = Number.MAX_SAFE_INTEGER;
+  silentPlayer(world);
+  const horde = waves.hordes[0];
+  world.spawn.nextPackTick = Number.MAX_SAFE_INTEGER;
   world.spawn.nextEliteTick = Number.MAX_SAFE_INTEGER;
-  for (let t = 0; t < 5; t++) advance(world);
-  let boss = null;
+  jumpTo(world, horde.atSeconds);
+  advance(world);
+  assert.equal(world.enemies.count, horde.count, 'the whole horde should land in one tick');
+  const quadrants = new Set<number>();
   for (let i = 0; i < world.enemies.count; i++) {
-    if (world.enemies.items[i].scale === waves.boss.scale) boss = world.enemies.items[i];
+    const e = world.enemies.items[i];
+    const dx = e.prevX - world.camera.prevX;
+    const dy = e.prevY - world.camera.prevY;
+    quadrants.add((dx >= 0 ? 1 : 0) + (dy >= 0 ? 2 : 0));
   }
-  assert.ok(boss, 'no boss found');
-  assert.equal(boss.type, 3);
-  assert.equal(boss.maxHp, Math.round(MONSTER_STATS[3].hp * waves.boss.hpMult));
+  assert.equal(quadrants.size, 4, 'a horde must come from every direction');
+  assert.equal(world.spawn.hordeIndex, 1);
+});
+
+test('the mini boss arrives at ten minutes and the boss at fifteen', () => {
+  const world = createWorld(7);
+  silentPlayer(world);
+  quietSpawner(world);
+  jumpTo(world, waves.miniBoss.atSeconds);
+  advance(world);
+  const miniIndex = bossOnField(world, BOSS_MINI);
+  assert.ok(miniIndex >= 0, 'no mini boss at ten minutes');
+  const mini = world.enemies.items[miniIndex];
+  assert.equal(
+    mini.maxHp,
+    Math.round(MONSTER_STATS[3].hp * hpScaleAt(waves.miniBoss.atSeconds) * waves.miniBoss.hpMult),
+  );
+  assert.equal(world.spawn.bossDone, false, 'the final boss must not be out yet');
+
+  jumpTo(world, waves.boss.atSeconds);
+  advance(world);
+  const bossIndex = bossOnField(world, BOSS_FINAL);
+  assert.ok(bossIndex >= 0, 'no boss at fifteen minutes');
+  assert.ok(world.enemies.items[bossIndex].maxHp > mini.maxHp, 'the boss should outclass the mini');
+});
+
+test('regular spawning stops once the boss is out', () => {
+  const world = createWorld(7);
+  silentPlayer(world);
+  world.spawn.hordeIndex = waves.hordes.length;
+  jumpTo(world, waves.boss.atSeconds);
+  advance(world);
+  assert.ok(bossOnField(world, BOSS_FINAL) >= 0);
+  const afterBoss = world.enemies.count;
+  for (let t = 0; t < 1200; t++) advance(world);
+  assert.ok(
+    world.enemies.count <= afterBoss,
+    `spawning continued during the boss fight (${afterBoss} -> ${world.enemies.count})`,
+  );
+});
+
+test('killing the boss wins the run', () => {
+  const world = createWorld(7);
+  silentPlayer(world);
+  quietSpawner(world);
+  jumpTo(world, waves.boss.atSeconds);
+  advance(world);
+  const bossIndex = bossOnField(world, BOSS_FINAL);
+  assert.ok(bossIndex >= 0);
+  assert.equal(world.status, 0);
+  damageEnemy(world, bossIndex, world.enemies.items[bossIndex].hp);
+  assert.equal(world.spawn.bossKilled, true);
+  advance(world);
+  assert.equal(world.status, STATUS_WON);
+});
+
+test('the run does not end just because the boss has spawned', () => {
+  const world = createWorld(7);
+  silentPlayer(world);
+  quietSpawner(world);
+  jumpTo(world, waves.boss.atSeconds);
+  for (let t = 0; t < 120; t++) advance(world);
+  assert.notEqual(world.status, STATUS_WON);
 });
 
 test('at the concurrent cap the farthest enemy is recycled to the ring', () => {
   const world = createWorld(7);
+  silentPlayer(world);
+  quietSpawner(world);
   for (let i = 0; i < CONCURRENT_CAP - 1; i++) {
     spawnEnemy(world, MONSTER_STATS[0], 50 + (i % 10), 50, 0);
   }
@@ -126,26 +188,35 @@ test('at the concurrent cap the farthest enemy is recycled to the ring', () => {
   assert.ok(far);
   const farId = far.id;
   assert.equal(world.enemies.count, CONCURRENT_CAP);
-  world.spawn.accumulator = 0.999;
-  world.spawn.nextBurstTick = Number.MAX_SAFE_INTEGER;
-  world.spawn.nextEliteTick = Number.MAX_SAFE_INTEGER;
-  world.spawn.nextBossTick = Number.MAX_SAFE_INTEGER;
+  world.spawn.nextPackTick = world.tick + 1;
   advance(world);
   assert.equal(world.enemies.count, CONCURRENT_CAP);
-  const ring = spawnRingRadius(world);
   let recycledStillFar = false;
-  let sawNewId = false;
   for (let i = 0; i < world.enemies.count; i++) {
-    const e = world.enemies.items[i];
-    if (e.id === farId) recycledStillFar = true;
-    if (e.id > farId) {
-      sawNewId = true;
-      const dx = e.prevX - world.camera.prevX;
-      const dy = e.prevY - world.camera.prevY;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      assert.ok(Math.abs(dist - ring) < ring * 0.2, `recycled at ${dist} vs ring ${ring}`);
-    }
+    if (world.enemies.items[i].id === farId) recycledStillFar = true;
   }
   assert.ok(!recycledStillFar, 'farthest enemy should have been recycled');
-  assert.ok(sawNewId, 'a re-initialized enemy should exist');
+});
+
+test('the cap never recycles a live boss out of the fight', () => {
+  const world = createWorld(7);
+  silentPlayer(world);
+  quietSpawner(world);
+  jumpTo(world, waves.boss.atSeconds);
+  advance(world);
+  const bossIndex = bossOnField(world, BOSS_FINAL);
+  assert.ok(bossIndex >= 0);
+  const bossId = world.enemies.items[bossIndex].id;
+  while (world.enemies.count < CONCURRENT_CAP) {
+    assert.ok(spawnEnemy(world, MONSTER_STATS[0], 5000, 5000, 0));
+  }
+  world.spawn.bossDone = false;
+  world.spawn.nextPackTick = world.tick + 1;
+  advance(world);
+  let bossStillAlive = false;
+  for (let i = 0; i < world.enemies.count; i++) {
+    const e = world.enemies.items[i];
+    if (e.id === bossId && e.boss === BOSS_FINAL) bossStillAlive = true;
+  }
+  assert.ok(bossStillAlive, 'the boss was recycled by the concurrent cap');
 });

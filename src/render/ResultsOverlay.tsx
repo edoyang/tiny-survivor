@@ -1,10 +1,20 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatTime, type HudSnapshot } from './Hud.tsx';
 
-export function ResultsOverlay({ snap, onRetry }: { snap: HudSnapshot; onRetry: () => void }) {
+export function ResultsOverlay({
+  snap,
+  won,
+  onRetry,
+}: {
+  snap: HudSnapshot;
+  won: boolean;
+  onRetry: () => void;
+}) {
   return (
     <View style={styles.backdrop}>
-      <Text style={styles.title}>YOU FELL</Text>
+      <Text style={[styles.title, won ? styles.wonTitle : styles.lostTitle]}>
+        {won ? 'BOSS DOWN' : 'YOU FELL'}
+      </Text>
       <View style={styles.statsBox}>
         <Text style={styles.stat}>Survived {formatTime(snap.seconds)}</Text>
         <Text style={styles.stat}>{snap.kills} kills</Text>
@@ -29,7 +39,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 24,
   },
-  title: { color: '#e05252', fontSize: 32, fontWeight: 'bold', letterSpacing: 3 },
+  title: { fontSize: 32, fontWeight: 'bold', letterSpacing: 3 },
+  wonTitle: { color: '#5ee9a0' },
+  lostTitle: { color: '#e05252' },
   statsBox: { marginVertical: 28, alignItems: 'center', gap: 8 },
   stat: { color: '#e8e4d8', fontSize: 18 },
   retryButton: {

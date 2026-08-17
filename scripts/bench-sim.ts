@@ -1,11 +1,16 @@
 import { spawnEnemy } from '../src/game/entities/enemies.ts';
 import { MONSTER_STATS } from '../src/game/entities/monsterTypes.ts';
-import { CLASS_KNIGHT, createWorld } from '../src/game/state.ts';
+import { CLASS_KNIGHT } from '../src/game/kinds.ts';
+import { createWorld } from '../src/game/state.ts';
 import { advance } from '../src/game/step.ts';
+import { grantItem, itemIndexById } from '../src/game/systems/items.ts';
 
-const world = createWorld(1234, CLASS_KNIGHT);
-world.player.volleyCount = 3;
-world.player.damageMult = 2;
+const world = createWorld(1234, CLASS_KNIGHT, 3);
+for (let star = 0; star < 6; star++) {
+  grantItem(world, itemIndexById('vowblade'));
+  grantItem(world, itemIndexById('rally_banner'));
+  grantItem(world, itemIndexById('charger_greaves'));
+}
 
 for (let i = 0; i < 190; i++) {
   const angle = (i / 190) * Math.PI * 2;

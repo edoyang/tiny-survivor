@@ -1,0 +1,74 @@
+[
+  {
+    "id": "wizard_elementalist",
+    "classId": 0,
+    "name": "Elementalist",
+    "blurb": "Fire, frost and thunder. Every slot adds another element to the storm."
+  },
+  {
+    "id": "wizard_battery",
+    "classId": 0,
+    "name": "Arcane Battery",
+    "blurb": "Casts echo and overload. Rewards not getting hit."
+  },
+  {
+    "id": "wizard_summoner",
+    "classId": 0,
+    "name": "Summoner",
+    "blurb": "Familiars and wards fight for you while you keep your distance."
+  },
+  {
+    "id": "knight_bladeguard",
+    "classId": 1,
+    "name": "Bladeguard",
+    "blurb": "Piercing swords and a defensive backbone."
+  },
+  {
+    "id": "knight_vanguard",
+    "classId": 1,
+    "name": "Vanguard",
+    "blurb": "Momentum. Drive into the crowd and knock it apart."
+  },
+  {
+    "id": "knight_executioner",
+    "classId": 1,
+    "name": "Executioner",
+    "blurb": "Crits and executes. Melts elites, struggles against a wall."
+  },
+  {
+    "id": "dwarf_forgemaster",
+    "classId": 2,
+    "name": "Forgemaster",
+    "blurb": "Returning axe, fire pools and explosives."
+  },
+  {
+    "id": "dwarf_prospector",
+    "classId": 2,
+    "name": "Prospector",
+    "blurb": "Greed build. Gems fuel your armour and your bombs."
+  },
+  {
+    "id": "dwarf_turret",
+    "classId": 2,
+    "name": "Emplacement",
+    "blurb": "Plant turrets and hold ground. Slow, immovable, lethal."
+  },
+  {
+    "id": "priest_radiance",
+    "classId": 3,
+    "name": "Radiance",
+    "blurb": "Orbiting censers, holy strikes and steady healing."
+  },
+  {
+    "id": "priest_inquisitor",
+    "classId": 3,
+    "name": "Inquisitor",
+    "blurb": "Burn and judgement. Trades safety for damage."
+  },
+  {
+    "id": "priest_shepherd",
+    "classId": 3,
+    "name": "Shepherd",
+    "blurb": "Shields and denial. The crowd simply cannot reach you."
+  }
+]

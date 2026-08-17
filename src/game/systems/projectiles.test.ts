@@ -2,16 +2,21 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import weapons from '../data/weapons.json' with { type: 'json' };
 import { spawnEnemy, type EnemyStats } from '../entities/enemies.ts';
+import tuning from '../data/tuning.json' with { type: 'json' };
 import {
+  AXE_PHASE_DWELL,
+  AXE_PHASE_RETURN,
   CLASS_DWARF,
   CLASS_KNIGHT,
   CLASS_PRIEST,
   CLASS_WIZARD,
-  createWorld,
-  FIXED_DT,
   PROJ_AXE,
-  AXE_PHASE_DWELL,
-  AXE_PHASE_RETURN,
+} from '../kinds.ts';
+import {
+  createWorld,
+  DEFAULT_VIEW_HEIGHT,
+  DEFAULT_VIEW_WIDTH,
+  FIXED_DT,
   type World,
 } from '../state.ts';
 import { advance } from '../step.ts';
@@ -32,10 +37,11 @@ function totalDamageTaken(world: World, index: number): number {
 }
 
 function stopSpawner(world: World): void {
-  world.spawn.nextBurstTick = Number.MAX_SAFE_INTEGER;
+  world.spawn.nextPackTick = Number.MAX_SAFE_INTEGER;
   world.spawn.nextEliteTick = Number.MAX_SAFE_INTEGER;
-  world.spawn.nextBossTick = Number.MAX_SAFE_INTEGER;
-  world.spawn.accumulator = -1e9;
+  world.spawn.hordeIndex = Number.MAX_SAFE_INTEGER;
+  world.spawn.miniBossDone = true;
+  world.spawn.bossDone = true;
 }
 
 test('fireball explodes on first contact and damages each enemy in the blast once', () => {
@@ -103,7 +109,7 @@ test('sword pierces through enemies, damaging each once, up to its pierce count'
 test('a sword cannot miss a fast-moving target', () => {
   const world = createWorld(3, CLASS_KNIGHT);
   stopSpawner(world);
-  const runner = spawnEnemy(world, { ...DUMMY, speed: 60 }, 240, 120, 0);
+  const runner = spawnEnemy(world, { ...DUMMY, speed: 60 }, 90, 40, 0);
   assert.ok(runner);
   world.player.moveInput.x = -1;
   world.player.moveInput.y = 0;
@@ -190,7 +196,7 @@ test('the orb damages a lingering enemy on its re-hit cooldown, not every frame'
   const camper = spawnEnemy(world, DUMMY, 34, 0, 0);
   assert.ok(camper);
   camper.radius = 30;
-  const rehitTicks = Math.round(weapons.orb.rehitSeconds / FIXED_DT);
+  const rehitTicks = Math.round(tuning.items.orbiterRehitSeconds / FIXED_DT);
   const hitTicks: number[] = [];
   let lastDamage = 0;
   for (let t = 0; t < 240; t++) {
@@ -212,7 +218,7 @@ test('a volley staggers its shots and hides the knight weapon while dispatching'
   const world = createWorld(3, CLASS_KNIGHT);
   stopSpawner(world);
   world.player.volleyCount = 3;
-  for (let i = 0; i < 6; i++) spawnEnemy(world, DUMMY, 120 + i * 20, 40, 0);
+  for (let i = 0; i < 6; i++) spawnEnemy(world, DUMMY, 60 + i * 10, 20, 0);
   const spawnTicks: number[] = [];
   let lastCount = 0;
   for (let t = 0; t < 300 && spawnTicks.length < 3; t++) {
@@ -237,4 +243,24 @@ test('the knight weapon reappears once the field is clear and cooldown has run',
   assert.equal(world.enemies.count, 0);
   assert.equal(world.projectiles.count, 0);
   assert.ok(world.player.weaponVisible);
+});
+
+test('nothing can be targeted outside the visible area of a reference phone', () => {
+  const visibleHalfWidth = DEFAULT_VIEW_WIDTH / 2;
+  assert.ok(
+    weapons.acquireRange <= visibleHalfWidth,
+    `acquireRange ${weapons.acquireRange} reaches past the ${visibleHalfWidth} half-width on screen`,
+  );
+  assert.ok(
+    weapons.fireball.range <= DEFAULT_VIEW_HEIGHT / 2,
+    'a fireball should not outrange the screen',
+  );
+  assert.ok(
+    tuning.abilities.searchRange <= visibleHalfWidth,
+    `ability searchRange ${tuning.abilities.searchRange} targets off-screen enemies`,
+  );
+  assert.ok(
+    tuning.abilities.minionRange <= visibleHalfWidth,
+    `minionRange ${tuning.abilities.minionRange} targets off-screen enemies`,
+  );
 });

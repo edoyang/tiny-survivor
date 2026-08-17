@@ -12,12 +12,13 @@ import {
 } from '@shopify/react-native-skia';
 import tuning from '../game/data/tuning.json' with { type: 'json' };
 import { MONSTER_SPRITES } from '../game/entities/monsterTypes.ts';
+import { FX_COUNT, PROJ_AXE, PROJ_BOMB, PROJ_FIREBALL, PROJ_SWORD } from '../game/kinds.ts';
 import {
+  EFFECT_CAP,
   ENEMY_CAP,
+  FIELD_CAP,
   GEM_CAP,
-  PROJ_AXE,
-  PROJ_FIREBALL,
-  PROJ_SWORD,
+  MINION_CAP,
   PROJECTILE_CAP,
   type World,
 } from '../game/state.ts';
@@ -25,6 +26,7 @@ import { flippedName, type SpriteAtlas } from './atlas.ts';
 import { floorTileAt, generateFloorLayout, TILE_SIZE } from './floor.ts';
 import { computeHeroPose, createHeroPose, type HeroPose } from './hero.ts';
 import type { JoystickState } from './joystick.ts';
+import { EFFECT_FRAME_SIZE, EFFECT_SHEETS } from './sources.ts';
 
 export type HeroImages = {
   body: SkImage;
@@ -47,7 +49,6 @@ export type RenderContext = {
   spritePaint: SkPaint;
   joystickBasePaint: SkPaint;
   joystickKnobPaint: SkPaint;
-  scratchRect: SkHostRect;
   bounds: SkHostRect;
   heroBody: SkImage;
   heroWeapon: SkImage;
@@ -69,12 +70,18 @@ export type RenderContext = {
   missileRect: SkRect;
   projSrcs: SkRect[];
   projXforms: SkRSXform[];
+  effectFrames: SkRect[][];
+  effectSrcs: SkRect[];
+  effectXforms: SkRSXform[];
 };
 
 export const MONSTER_WALK_FRAMES = 3;
 export const FIREBALL_FRAMES = 8;
 const HALF_PI = Math.PI / 2;
 const CULL_MARGIN = 40;
+const EFFECT_SLOTS = EFFECT_CAP + FIELD_CAP + 1;
+const EFFECT_RADIUS_MULT = tuning.render.effectRadiusMult;
+const ORBITER_SLOTS = 8;
 
 const NEAREST = { filter: FilterMode.Nearest };
 
@@ -119,7 +126,14 @@ export function createRenderContext(
   for (let f = 0; f < FIREBALL_FRAMES; f++) {
     fireballFrames.push(Skia.XYWHRect(fireballStrip.x + f * 32, fireballStrip.y, 32, 32));
   }
-  const projCount = PROJECTILE_CAP + 1;
+  const effectFrames: SkRect[][] = [];
+  for (let k = 0; k < FX_COUNT; k++) {
+    const sheet = EFFECT_SHEETS[k];
+    const frames: SkRect[] = [];
+    for (let f = 0; f < sheet.frames; f++) frames.push(atlas.rects[`${sheet.name}_${f}`]);
+    effectFrames.push(frames);
+  }
+  const projCount = PROJECTILE_CAP + ORBITER_SLOTS + MINION_CAP;
   const projSrcs: SkRect[] = new Array(projCount);
   const projXforms: SkRSXform[] = new Array(projCount);
   for (let i = 0; i < projCount; i++) {
@@ -137,6 +151,12 @@ export function createRenderContext(
   for (let i = 0; i < GEM_CAP; i++) {
     gemSrcs[i] = gemRect;
     gemXforms[i] = Skia.RSXform(0, 0, 0, 0);
+  }
+  const effectSrcs: SkRect[] = new Array(EFFECT_SLOTS);
+  const effectXforms: SkRSXform[] = new Array(EFFECT_SLOTS);
+  for (let i = 0; i < EFFECT_SLOTS; i++) {
+    effectSrcs[i] = effectFrames[0][0];
+    effectXforms[i] = Skia.RSXform(0, 0, 0, 0);
   }
   const joystickBasePaint = Skia.Paint();
   joystickBasePaint.setColor(Skia.Color('#ffffff22'));
@@ -157,7 +177,6 @@ export function createRenderContext(
     spritePaint,
     joystickBasePaint,
     joystickKnobPaint,
-    scratchRect: Skia.XYWHRect(0, 0, 1, 1),
     bounds: Skia.XYWHRect(0, 0, screenWidth, screenHeight),
     heroBody: hero.body,
     heroWeapon: hero.weapon,
@@ -179,6 +198,9 @@ export function createRenderContext(
     missileRect: atlas.rects.missile,
     projSrcs,
     projXforms,
+    effectFrames,
+    effectSrcs,
+    effectXforms,
   };
 }
 
@@ -274,6 +296,81 @@ export function drawWorld(
     NEAREST,
   );
 
+  let fxCount = 0;
+  const fieldFps = tuning.render.fieldFps;
+  const fields = world.fields;
+  for (let i = 0; i < fields.count && fxCount < EFFECT_SLOTS; i++) {
+    const field = fields.items[i];
+    if (field.radius <= 0) continue;
+    if (
+      field.pos.x < cullMinX ||
+      field.pos.x > cullMaxX ||
+      field.pos.y < cullMinY ||
+      field.pos.y > cullMaxY
+    ) {
+      continue;
+    }
+    const frames = ctx.effectFrames[field.visual];
+    const age = field.lifeTicks - field.ttlTicks;
+    ctx.effectSrcs[fxCount] = frames[Math.floor(age * fieldFps * (1 / 60)) % frames.length];
+    setRotatedXform(
+      ctx.effectXforms[fxCount],
+      (field.radius * 2 * EFFECT_RADIUS_MULT) / EFFECT_FRAME_SIZE,
+      0,
+      field.pos.x,
+      field.pos.y,
+      EFFECT_FRAME_SIZE / 2,
+      EFFECT_FRAME_SIZE / 2,
+    );
+    fxCount++;
+  }
+  if (world.player.auraRadius > 0 && fxCount < EFFECT_SLOTS) {
+    const frames = ctx.effectFrames[world.auraField.visual];
+    ctx.effectSrcs[fxCount] = frames[Math.floor(world.tick * fieldFps * (1 / 60)) % frames.length];
+    setRotatedXform(
+      ctx.effectXforms[fxCount],
+      (world.player.auraRadius * 2 * EFFECT_RADIUS_MULT) / EFFECT_FRAME_SIZE,
+      0,
+      world.auraField.pos.x,
+      world.auraField.pos.y,
+      EFFECT_FRAME_SIZE / 2,
+      EFFECT_FRAME_SIZE / 2,
+    );
+    fxCount++;
+  }
+  const effects = world.effects;
+  for (let i = 0; i < effects.count && fxCount < EFFECT_SLOTS; i++) {
+    const fx = effects.items[i];
+    if (fx.pos.x < cullMinX || fx.pos.x > cullMaxX || fx.pos.y < cullMinY || fx.pos.y > cullMaxY) {
+      continue;
+    }
+    const frames = ctx.effectFrames[fx.kind];
+    const frame = Math.min(frames.length - 1, Math.floor((fx.ageTicks / fx.lifeTicks) * frames.length));
+    ctx.effectSrcs[fxCount] = frames[frame];
+    setRotatedXform(
+      ctx.effectXforms[fxCount],
+      (fx.radius * 2 * EFFECT_RADIUS_MULT) / EFFECT_FRAME_SIZE,
+      0,
+      fx.pos.x,
+      fx.pos.y,
+      EFFECT_FRAME_SIZE / 2,
+      EFFECT_FRAME_SIZE / 2,
+    );
+    fxCount++;
+  }
+  for (let i = fxCount; i < EFFECT_SLOTS; i++) {
+    ctx.effectXforms[i].set(0, 0, 0, 0);
+  }
+  canvas.drawAtlas(
+    ctx.atlas.image,
+    ctx.effectSrcs,
+    ctx.effectXforms,
+    ctx.spritePaint,
+    undefined,
+    undefined,
+    NEAREST,
+  );
+
   const enemies = world.enemies;
   const animFps = tuning.enemies.animFps;
   let enemyDrawCount = 0;
@@ -311,7 +408,7 @@ export function drawWorld(
     const cy = lerp(p.prevY, p.pos.y, alpha);
     if (cx < cullMinX || cx > cullMaxX || cy < cullMinY || cy > cullMaxY) continue;
     const xform = ctx.projXforms[projDrawCount];
-    if (p.kind === PROJ_FIREBALL) {
+    if (p.kind === PROJ_FIREBALL || p.kind === PROJ_BOMB) {
       const frame =
         Math.floor(world.time * projTuning.fireballFps + (p.id % FIREBALL_FRAMES)) %
         FIREBALL_FRAMES;
@@ -329,11 +426,28 @@ export function drawWorld(
     }
     projDrawCount++;
   }
-  if (world.orb.active) {
-    const ox = lerp(world.orb.prevX, world.orb.pos.x, alpha);
-    const oy = lerp(world.orb.prevY, world.orb.pos.y, alpha);
+  for (let i = 0; i < world.orbiterCount; i++) {
+    const orbiter = world.orbiters[i];
+    const ox = lerp(orbiter.prevX, orbiter.pos.x, alpha);
+    const oy = lerp(orbiter.prevY, orbiter.pos.y, alpha);
     ctx.projSrcs[projDrawCount] = ctx.orbRect;
-    setRotatedXform(ctx.projXforms[projDrawCount], projTuning.orbScale, world.orb.angle, ox, oy, 50, 50);
+    setRotatedXform(ctx.projXforms[projDrawCount], projTuning.orbScale, orbiter.angle, ox, oy, 50, 50);
+    projDrawCount++;
+  }
+  for (let i = 0; i < world.minions.count; i++) {
+    const minion = world.minions.items[i];
+    const mx = lerp(minion.prevX, minion.pos.x, alpha);
+    const my = lerp(minion.prevY, minion.pos.y, alpha);
+    ctx.projSrcs[projDrawCount] = ctx.orbRect;
+    setRotatedXform(
+      ctx.projXforms[projDrawCount],
+      projTuning.minionScale,
+      minion.angle,
+      mx,
+      my,
+      50,
+      50,
+    );
     projDrawCount++;
   }
   for (let i = projDrawCount; i < ctx.projXforms.length; i++) {
@@ -381,7 +495,12 @@ export function drawWorld(
   canvas.restore();
 
   if (joystick.active) {
-    canvas.drawCircle(joystick.originX, joystick.originY, tuning.joystick.radius, ctx.joystickBasePaint);
+    canvas.drawCircle(
+      joystick.originX,
+      joystick.originY,
+      tuning.joystick.radius,
+      ctx.joystickBasePaint,
+    );
     let dx = joystick.x - joystick.originX;
     let dy = joystick.y - joystick.originY;
     const len = Math.sqrt(dx * dx + dy * dy);

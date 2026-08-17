@@ -1,10 +1,4 @@
-import {
-  Canvas,
-  Picture,
-  Skia,
-  useImage,
-  type SkPicture,
-} from '@shopify/react-native-skia';
+import { Canvas, Picture, Skia, useImage, type SkPicture } from '@shopify/react-native-skia';
 import { useEffect, useState } from 'react';
 import { useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -19,6 +13,8 @@ import { createRenderContext, drawWorld } from './drawWorld.ts';
 import { createJoystick, joystickInput } from './joystick.ts';
 import { attachKeyboard } from './keyboard';
 import {
+  EFFECT_FRAME_SIZE,
+  EFFECT_SHEETS,
   FIREBALL_IMAGE,
   HERO_IMAGES,
   MONSTER_IMAGES,
@@ -66,6 +62,13 @@ export function GameCanvas({ world, paused }: { world: World; paused: { current:
   const monster1 = useImage(MONSTER_IMAGES[3][1]);
   const monster2 = useImage(MONSTER_IMAGES[3][2]);
   const monster3 = useImage(MONSTER_IMAGES[3][3]);
+  const fx0 = useImage(EFFECT_SHEETS[0].source);
+  const fx1 = useImage(EFFECT_SHEETS[1].source);
+  const fx2 = useImage(EFFECT_SHEETS[2].source);
+  const fx3 = useImage(EFFECT_SHEETS[3].source);
+  const fx4 = useImage(EFFECT_SHEETS[4].source);
+  const fx5 = useImage(EFFECT_SHEETS[5].source);
+  const fx6 = useImage(EFFECT_SHEETS[6].source);
 
   useEffect(() => {
     const monsterFrames = [
@@ -74,6 +77,7 @@ export function GameCanvas({ world, paused }: { world: World; paused: { current:
       [bunny0, bunny1, bunny2, bunny3],
       [monster0, monster1, monster2, monster3],
     ];
+    const effectImages = [fx0, fx1, fx2, fx3, fx4, fx5, fx6];
     if (
       tile42 === null ||
       tile48 === null ||
@@ -84,6 +88,7 @@ export function GameCanvas({ world, paused }: { world: World; paused: { current:
       axeImg === null ||
       fireballImg === null ||
       orbImg === null ||
+      effectImages.some((img) => img === null) ||
       monsterFrames.some((frames) => frames.some((img) => img === null))
     ) {
       return;
@@ -104,6 +109,21 @@ export function GameCanvas({ world, paused }: { world: World; paused: { current:
         const image = monsterFrames[type][frame];
         if (image === null) return;
         entries.push({ name: `${MONSTER_SPRITES[type]}_${frame}`, image, withFlipped: true });
+      }
+    }
+    for (let sheet = 0; sheet < EFFECT_SHEETS.length; sheet++) {
+      const image = effectImages[sheet];
+      if (image === null) return;
+      const def = EFFECT_SHEETS[sheet];
+      for (let frame = 0; frame < def.frames; frame++) {
+        entries.push({
+          name: `${def.name}_${frame}`,
+          image,
+          srcX: frame * EFFECT_FRAME_SIZE,
+          srcY: def.colourRow * EFFECT_FRAME_SIZE,
+          srcWidth: EFFECT_FRAME_SIZE,
+          srcHeight: EFFECT_FRAME_SIZE,
+        });
       }
     }
     const atlas = buildAtlas(entries);
@@ -165,10 +185,18 @@ export function GameCanvas({ world, paused }: { world: World; paused: { current:
     monster1,
     monster2,
     monster3,
+    fx0,
+    fx1,
+    fx2,
+    fx3,
+    fx4,
+    fx5,
+    fx6,
     cls,
     width,
     height,
     joystick,
+    keyboardInput,
     picture,
     world,
     paused,

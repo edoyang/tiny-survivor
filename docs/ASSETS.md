@@ -54,3 +54,43 @@ All monster sprites have a dark outline plus a white outer border baked in.
 | `tile_0042.png` | orange floor with grey slab inlays |
 | `tile_0048.png` | plain orange floor |
 | `tile_0049.png` | orange floor with light speckles |
+
+## Effect sheets — `assets/effect/`, verified by decoding every PNG
+
+180 sheets across `Part 1` … `Part 15`. Layout verified by decoding the PNGs
+and measuring per-cell alpha coverage, per-frame bounding boxes and mean
+colour — not guessed:
+
+- **Frames are 64x64, laid out left to right.** Frame count = `width / 64`.
+  Widths are always a multiple of 64 and vary per sheet (320 … 1472).
+- **Every sheet is 576 px tall = 9 rows of 64.** The 9 rows are **9 colour
+  variants of the same animation**, not 9 frames: per-row alpha counts and
+  bounding boxes are byte-identical across rows, only the RGB differs.
+- **Row order (verified by mean colour of the opaque pixels, same in every
+  sheet checked):** 0 orange/fire, 1 purple, 2 cyan/ice, 3 green, 4 brown,
+  5 grey, 6 pink, 7 red, 8 indigo.
+- Colour type 6 (RGBA8), non-interlaced.
+
+The seven sheets wired into the game, with the row picked for each. Frame
+counts below were measured, not assumed:
+
+| Game kind | File | Frames | Colour row |
+|---|---|---|---|
+| `FX_EXPLOSION` | `Part 1/03.png` | 13 | 0 (orange) |
+| `FX_BOLT` | `Part 13/635.png` | 14 | 1 (purple) |
+| `FX_RING` | `Part 3/135.png` | 12 | 5 (grey) |
+| `FX_FROST` | `Part 6/285.png` | 8 | 2 (cyan) |
+| `FX_STORM` | `Part 4/197.png` | 14 | 2 (cyan) |
+| `FX_SPARK` | `Part 5/223.png` | 5 | 3 (green) |
+| `FX_SLASH` | `Part 8/375.png` | 8 | 7 (red) |
+
+The mapping lives in `src/render/sources.ts` (`EFFECT_SHEETS`). To reskin an
+effect, change the file or the `colourRow` there — nothing else needs editing.
+Frames are cut out of the chosen row and packed into the runtime atlas at boot.
+
+**Not verified:** which *subject* each of the other 173 sheets depicts. They
+were classified only by measured motion (centroid drift across frames) and
+peak coverage, and picked on that basis: `Part 1/03` is the largest radial
+burst in the pack, `Part 13/635` the tallest narrow one (read as a bolt),
+`Part 8/375` the widest flat one (read as a slash). Nobody has looked at them
+as pictures.

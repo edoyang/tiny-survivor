@@ -4,7 +4,7 @@
     "speed": 170,
     "radius": 4,
     "aoeRadius": 36,
-    "range": 280
+    "range": 140
   },
   "sword": {
     "damage": 8,
@@ -12,7 +12,7 @@
     "radius": 5,
     "pierce": 3,
     "turnDegPerSec": 900,
-    "lifetimeSeconds": 2.5
+    "lifetimeSeconds": 1.6
   },
   "axe": {
     "damage": 10,
@@ -35,8 +35,8 @@
     "speed": 160,
     "radius": 3,
     "turnDegPerSec": 600,
-    "lifetimeSeconds": 3.0
+    "lifetimeSeconds": 1.6
   },
   "volley": { "staggerSeconds": 0.12 },
-  "acquireRange": 280
+  "acquireRange": 120
 }

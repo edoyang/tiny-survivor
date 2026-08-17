@@ -1,0 +1,1482 @@
+[
+  {
+    "id": "staff_of_cinders",
+    "classId": 0,
+    "preset": "wizard_elementalist",
+    "name": "Staff of Cinders",
+    "color": "#ff9f45",
+    "star": "+14% damage, +5% blast size",
+    "awaken": "A meteor falls on the thickest crowd every 5s",
+    "stats": {
+      "damageMult": 0.14,
+      "aoeMult": 0.05
+    },
+    "awakenAbility": {
+      "kind": "meteor",
+      "visual": "explosion",
+      "interval": 5,
+      "damage": 95,
+      "radius": 54
+    }
+  },
+  {
+    "id": "hat_of_the_arcane",
+    "classId": 0,
+    "preset": "wizard_elementalist",
+    "name": "Hat of the Arcane",
+    "color": "#b389ff",
+    "star": "+16% radius on every area effect",
+    "awaken": "Enemies inside your aura burn every second",
+    "stats": {
+      "aoeMult": 0.16
+    },
+    "awakenStats": {
+      "auraDps": 15,
+      "auraRadius": 46
+    }
+  },
+  {
+    "id": "robe_of_magi",
+    "classId": 0,
+    "preset": "wizard_elementalist",
+    "name": "Robe of Magi",
+    "color": "#6fb7ff",
+    "star": "All projectiles pierce, +1 pierce",
+    "awaken": "A pierced projectile shatters into 3 shards once",
+    "stats": {
+      "damageMult": 0.05,
+      "pierce": 1
+    },
+    "flags": [
+      "pierceAll"
+    ],
+    "awakenFlags": [
+      "shatter"
+    ]
+  },
+  {
+    "id": "codex_of_frost",
+    "classId": 0,
+    "preset": "wizard_elementalist",
+    "name": "Codex of Frost",
+    "color": "#8ee8ff",
+    "star": "Casts a seeking icicle",
+    "awaken": "A snowstorm freezes everything around you every 9s",
+    "ability": {
+      "kind": "icicle",
+      "visual": "frost",
+      "interval": 2.2,
+      "damage": 16,
+      "count": 1,
+      "perStar": {
+        "damage": 5,
+        "interval": -0.12,
+        "count": 0.5
+      }
+    },
+    "awakenAbility": {
+      "kind": "snowstorm",
+      "visual": "storm",
+      "interval": 9,
+      "damage": 11,
+      "radius": 62,
+      "duration": 4,
+      "slow": 0.5
+    }
+  },
+  {
+    "id": "boots_of_the_gale",
+    "classId": 0,
+    "preset": "wizard_elementalist",
+    "name": "Boots of the Gale",
+    "color": "#9ff5c4",
+    "star": "+6% move speed, -6% cooldown while moving",
+    "awaken": "A gale field slows everything that closes on you",
+    "stats": {
+      "moveSpeedMult": 0.06,
+      "moveHaste": 0.06
+    },
+    "awakenStats": {
+      "auraRadius": 42,
+      "auraSlow": 0.45
+    }
+  },
+  {
+    "id": "amulet_of_thunder",
+    "classId": 0,
+    "preset": "wizard_elementalist",
+    "name": "Amulet of Thunder",
+    "color": "#c58bff",
+    "star": "Thunder strikes a nearby enemy",
+    "awaken": "30% chance to strike again on every kill",
+    "ability": {
+      "kind": "thunder",
+      "visual": "bolt",
+      "interval": 3.4,
+      "damage": 34,
+      "radius": 30,
+      "count": 1,
+      "perStar": {
+        "damage": 10,
+        "interval": -0.2,
+        "count": 0.5
+      }
+    },
+    "awakenFlags": [
+      "recastOnKill"
+    ]
+  },
+  {
+    "id": "vowblade",
+    "classId": 1,
+    "preset": "knight_bladeguard",
+    "name": "Vowblade",
+    "color": "#ffd166",
+    "star": "+12% damage, more pierce",
+    "awaken": "Every 6s a ring of swords bursts outward",
+    "stats": {
+      "damageMult": 0.12,
+      "pierce": 0.5
+    },
+    "awakenAbility": {
+      "kind": "volley",
+      "visual": "slash",
+      "interval": 6,
+      "count": 8
+    }
+  },
+  {
+    "id": "aegis_helm",
+    "classId": 1,
+    "preset": "knight_bladeguard",
+    "name": "Aegis Helm",
+    "color": "#8fb8ff",
+    "star": "+22 max HP, +3% damage reduction",
+    "awaken": "A shockwave rolls out from you every 7s",
+    "stats": {
+      "maxHp": 22,
+      "damageReduction": 0.03
+    },
+    "awakenAbility": {
+      "kind": "nova",
+      "visual": "ring",
+      "interval": 7,
+      "damage": 58,
+      "radius": 92
+    }
+  },
+  {
+    "id": "sentinel_plate",
+    "classId": 1,
+    "preset": "knight_bladeguard",
+    "name": "Sentinel Plate",
+    "color": "#a0a8b8",
+    "star": "+4% damage reduction, more pierce",
+    "stats": {
+      "damageReduction": 0.04,
+      "pierce": 0.5
+    },
+    "awaken": "A blade that spends all its pierce detonates",
+    "awakenFlags": [
+      "pierceBurst"
+    ]
+  },
+  {
+    "id": "rally_banner",
+    "classId": 1,
+    "preset": "knight_bladeguard",
+    "name": "Rally Banner",
+    "color": "#ff8f8f",
+    "star": "Spectral blades orbit you",
+    "awaken": "+2 blades on a wider orbit",
+    "stats": {
+      "orbiterCount": 0.5,
+      "orbiterDamage": 6
+    },
+    "awakenStats": {
+      "orbiterCount": 2,
+      "orbiterRadius": 16
+    }
+  },
+  {
+    "id": "charger_greaves",
+    "classId": 1,
+    "preset": "knight_bladeguard",
+    "name": "Charger Greaves",
+    "color": "#9ff5c4",
+    "star": "+7% move speed, +4% damage",
+    "awaken": "You leave a burning trail while running",
+    "stats": {
+      "moveSpeedMult": 0.07,
+      "damageMult": 0.04
+    },
+    "awakenAbility": {
+      "kind": "trail",
+      "visual": "spark",
+      "interval": 0.35,
+      "damage": 13,
+      "radius": 17,
+      "duration": 2.5
+    }
+  },
+  {
+    "id": "riposte_signet",
+    "classId": 1,
+    "preset": "knight_bladeguard",
+    "name": "Riposte Signet",
+    "color": "#ffb3c1",
+    "star": "Returns 25% of the hit, +2% damage reduction",
+    "awaken": "Taking a hit throws 3 swords back",
+    "stats": {
+      "thorns": 0.25,
+      "damageReduction": 0.02
+    },
+    "awakenFlags": [
+      "riposte"
+    ]
+  },
+  {
+    "id": "runeaxe",
+    "classId": 2,
+    "preset": "dwarf_forgemaster",
+    "name": "Runeaxe",
+    "color": "#ffd166",
+    "star": "+13% damage, more axes per throw",
+    "awaken": "The axe leaves a fire pool where it stops",
+    "stats": {
+      "damageMult": 0.13,
+      "volley": 0.34
+    },
+    "awakenFlags": [
+      "axeFirePool"
+    ]
+  },
+  {
+    "id": "ironbeard_helm",
+    "classId": 2,
+    "preset": "dwarf_forgemaster",
+    "name": "Ironbeard Helm",
+    "color": "#8fb8ff",
+    "star": "+26 max HP, +3% damage reduction",
+    "awaken": "A ground slam erupts from you every 6s",
+    "stats": {
+      "maxHp": 26,
+      "damageReduction": 0.03
+    },
+    "awakenAbility": {
+      "kind": "nova",
+      "visual": "ring",
+      "interval": 6,
+      "damage": 62,
+      "radius": 82
+    }
+  },
+  {
+    "id": "forge_mail",
+    "classId": 2,
+    "preset": "dwarf_forgemaster",
+    "name": "Forge Mail",
+    "color": "#ff9f45",
+    "star": "+4% damage reduction, +6% area",
+    "awaken": "Forge heat scorches everything beside you",
+    "stats": {
+      "damageReduction": 0.04,
+      "aoeMult": 0.06
+    },
+    "awakenStats": {
+      "auraDps": 13,
+      "auraRadius": 40
+    }
+  },
+  {
+    "id": "powder_keg",
+    "classId": 2,
+    "preset": "dwarf_forgemaster",
+    "name": "Powder Keg",
+    "color": "#ff7b5c",
+    "star": "Lobs a bomb at the nearest enemy",
+    "awaken": "Each bomb scatters 3 smaller bombs",
+    "ability": {
+      "kind": "bomb",
+      "visual": "explosion",
+      "interval": 3.2,
+      "damage": 42,
+      "radius": 34,
+      "count": 1,
+      "perStar": {
+        "damage": 12,
+        "interval": -0.2,
+        "count": 0.25
+      }
+    },
+    "awakenFlags": [
+      "bombCluster"
+    ]
+  },
+  {
+    "id": "trekker_boots",
+    "classId": 2,
+    "preset": "dwarf_forgemaster",
+    "name": "Trekker Boots",
+    "color": "#9ff5c4",
+    "star": "+7% move speed, -5% cooldown while moving",
+    "awaken": "Every 8s you spin a full ring of axes out",
+    "stats": {
+      "moveSpeedMult": 0.07,
+      "moveHaste": 0.05
+    },
+    "awakenAbility": {
+      "kind": "volley",
+      "visual": "slash",
+      "interval": 8,
+      "count": 6
+    }
+  },
+  {
+    "id": "ember_charm",
+    "classId": 2,
+    "preset": "dwarf_forgemaster",
+    "name": "Ember Charm",
+    "color": "#ffb347",
+    "star": "Throws a seeking ember",
+    "awaken": "30% chance to throw again on every kill",
+    "ability": {
+      "kind": "icicle",
+      "visual": "explosion",
+      "interval": 2,
+      "damage": 14,
+      "count": 1,
+      "perStar": {
+        "damage": 4,
+        "interval": -0.1,
+        "count": 0.5
+      }
+    },
+    "awakenFlags": [
+      "recastOnKill"
+    ]
+  },
+  {
+    "id": "vestment_of_dawn",
+    "classId": 3,
+    "preset": "priest_radiance",
+    "name": "Vestment of Dawn",
+    "color": "#ffe08a",
+    "star": "+12% damage, +12 max HP",
+    "awaken": "Dawn mends you every 6s",
+    "stats": {
+      "damageMult": 0.12,
+      "maxHp": 12
+    },
+    "awakenAbility": {
+      "kind": "heal",
+      "visual": "spark",
+      "interval": 6,
+      "damage": 20
+    }
+  },
+  {
+    "id": "halo_of_judgement",
+    "classId": 3,
+    "preset": "priest_radiance",
+    "name": "Halo of Judgement",
+    "color": "#fff3b0",
+    "star": "Judgement strikes a nearby enemy",
+    "awaken": "30% chance to strike again on every kill",
+    "ability": {
+      "kind": "thunder",
+      "visual": "bolt",
+      "interval": 3,
+      "damage": 30,
+      "radius": 26,
+      "count": 1,
+      "perStar": {
+        "damage": 9,
+        "interval": -0.18,
+        "count": 0.5
+      }
+    },
+    "awakenFlags": [
+      "recastOnKill"
+    ]
+  },
+  {
+    "id": "censer_of_grace",
+    "classId": 3,
+    "preset": "priest_radiance",
+    "name": "Censer of Grace",
+    "color": "#c8f0ff",
+    "star": "Censers orbit you",
+    "awaken": "+2 censers on a wider orbit",
+    "stats": {
+      "orbiterCount": 0.5,
+      "orbiterDamage": 5,
+      "orbiterRadius": 3
+    },
+    "awakenStats": {
+      "orbiterCount": 2,
+      "orbiterRadius": 14
+    }
+  },
+  {
+    "id": "chalice_of_mercy",
+    "classId": 3,
+    "preset": "priest_radiance",
+    "name": "Chalice of Mercy",
+    "color": "#8fb8ff",
+    "star": "+20 max HP, +3% damage reduction",
+    "awaken": "A sanctuary burst pushes the crowd back every 7s",
+    "stats": {
+      "maxHp": 20,
+      "damageReduction": 0.03
+    },
+    "awakenAbility": {
+      "kind": "nova",
+      "visual": "ring",
+      "interval": 7,
+      "damage": 52,
+      "radius": 86
+    }
+  },
+  {
+    "id": "sandals_of_pilgrimage",
+    "classId": 3,
+    "preset": "priest_radiance",
+    "name": "Sandals of Pilgrimage",
+    "color": "#9ff5c4",
+    "star": "+7% move speed, +15% pickup radius",
+    "awaken": "You stand on holy ground that burns the unclean",
+    "stats": {
+      "moveSpeedMult": 0.07,
+      "pickupMult": 0.15
+    },
+    "awakenStats": {
+      "auraDps": 11,
+      "auraRadius": 44
+    }
+  },
+  {
+    "id": "tome_of_seraph",
+    "classId": 3,
+    "preset": "priest_radiance",
+    "name": "Tome of Seraph",
+    "color": "#ffd6f5",
+    "star": "Casts a seeking mote of light",
+    "awaken": "A sanctum field holds the crowd every 9s",
+    "ability": {
+      "kind": "icicle",
+      "visual": "spark",
+      "interval": 2.4,
+      "damage": 15,
+      "count": 1,
+      "perStar": {
+        "damage": 5,
+        "interval": -0.14,
+        "count": 0.5
+      }
+    },
+    "awakenAbility": {
+      "kind": "snowstorm",
+      "visual": "storm",
+      "interval": 9,
+      "damage": 12,
+      "radius": 58,
+      "duration": 4,
+      "slow": 0.35
+    }
+  },
+  {
+    "id": "focus_rod",
+    "classId": 0,
+    "preset": "wizard_battery",
+    "name": "Focus Rod",
+    "color": "#ff9f45",
+    "star": "+13% damage, -5% cooldown",
+    "awaken": "Fires a piercing beam every 4s",
+    "stats": {
+      "damageMult": 0.13,
+      "cooldownMult": 0.05
+    },
+    "awakenAbility": {
+      "kind": "beam",
+      "visual": "bolt",
+      "interval": 4,
+      "damage": 26,
+      "radius": 15
+    }
+  },
+  {
+    "id": "crown_of_overload",
+    "classId": 0,
+    "preset": "wizard_battery",
+    "name": "Crown of Overload",
+    "color": "#b389ff",
+    "star": "+8% damage the longer you stand your ground",
+    "awaken": "Chain lightning arcs off you every 3s",
+    "stats": {
+      "stillDamage": 0.08
+    },
+    "awakenAbility": {
+      "kind": "thunder",
+      "visual": "bolt",
+      "interval": 3,
+      "damage": 34,
+      "radius": 26,
+      "count": 4
+    }
+  },
+  {
+    "id": "mantle_of_echoes",
+    "classId": 0,
+    "preset": "wizard_battery",
+    "name": "Mantle of Echoes",
+    "color": "#6fb7ff",
+    "star": "Every cast echoes at reduced damage",
+    "awaken": "Echoes shatter into shards on the first pierce",
+    "ability": {
+      "kind": "icicle",
+      "visual": "spark",
+      "interval": 1.8,
+      "damage": 12,
+      "count": 1,
+      "perStar": {
+        "damage": 4,
+        "interval": -0.1,
+        "count": 0.5
+      }
+    },
+    "awakenFlags": [
+      "shatter"
+    ]
+  },
+  {
+    "id": "grimoire_of_rifts",
+    "classId": 0,
+    "preset": "wizard_battery",
+    "name": "Grimoire of Rifts",
+    "color": "#c58bff",
+    "star": "Opens a rift that drags the crowd in",
+    "awaken": "Rifts detonate when they close",
+    "ability": {
+      "kind": "pull",
+      "visual": "storm",
+      "interval": 6,
+      "damage": 10,
+      "radius": 58,
+      "duration": 2.5,
+      "slow": 0.4,
+      "perStar": {
+        "damage": 4,
+        "radius": 4,
+        "interval": -0.3
+      }
+    },
+    "awakenAbility": {
+      "kind": "nova",
+      "visual": "ring",
+      "interval": 6,
+      "damage": 48,
+      "radius": 70
+    }
+  },
+  {
+    "id": "treads_of_ether",
+    "classId": 0,
+    "preset": "wizard_battery",
+    "name": "Treads of Ether",
+    "color": "#9ff5c4",
+    "star": "+6% move speed, you blink away on contact",
+    "awaken": "Your wake burns whatever follows you",
+    "stats": {
+      "moveSpeedMult": 0.06
+    },
+    "flags": [
+      "blink"
+    ],
+    "awakenStats": {
+      "auraDps": 12,
+      "auraRadius": 38
+    }
+  },
+  {
+    "id": "sigil_of_famine",
+    "classId": 0,
+    "preset": "wizard_battery",
+    "name": "Sigil of Famine",
+    "color": "#ffb3c1",
+    "star": "Your hits set enemies burning",
+    "awaken": "Burn spreads from anything that dies burning",
+    "stats": {
+      "burnDps": 4,
+      "burnSeconds": 0.6
+    },
+    "awakenFlags": [
+      "burnSpread"
+    ]
+  },
+  {
+    "id": "wand_of_binding",
+    "classId": 0,
+    "preset": "wizard_summoner",
+    "name": "Wand of Binding",
+    "color": "#8ee8ff",
+    "star": "A binding field slows what comes near",
+    "awaken": "Frozen enemies shatter when they die",
+    "stats": {
+      "auraSlow": 0.07,
+      "auraRadius": 9,
+      "damageMult": 0.05
+    },
+    "awakenFlags": [
+      "freezeShatter"
+    ]
+  },
+  {
+    "id": "hat_of_the_familiar",
+    "classId": 0,
+    "preset": "wizard_summoner",
+    "name": "Hat of the Familiar",
+    "color": "#b389ff",
+    "star": "A familiar floats beside you and shoots",
+    "awaken": "+1 familiar, all of them hit harder",
+    "stats": {
+      "minionCount": 0.34,
+      "minionDamage": 5
+    },
+    "awakenStats": {
+      "minionCount": 1,
+      "minionDamage": 10
+    }
+  },
+  {
+    "id": "robe_of_wards",
+    "classId": 0,
+    "preset": "wizard_summoner",
+    "name": "Robe of Wards",
+    "color": "#6fb7ff",
+    "star": "Wards orbit and grind whatever they touch",
+    "awaken": "+2 wards on a wider orbit",
+    "stats": {
+      "orbiterCount": 0.5,
+      "orbiterDamage": 5
+    },
+    "awakenStats": {
+      "orbiterCount": 2,
+      "orbiterRadius": 14
+    }
+  },
+  {
+    "id": "tome_of_legion",
+    "classId": 0,
+    "preset": "wizard_summoner",
+    "name": "Tome of Legion",
+    "color": "#c58bff",
+    "star": "Summons another spirit to fight for you",
+    "awaken": "+2 spirits",
+    "stats": {
+      "minionCount": 0.34,
+      "minionDamage": 6
+    },
+    "awakenStats": {
+      "minionCount": 2
+    }
+  },
+  {
+    "id": "boots_of_recall",
+    "classId": 0,
+    "preset": "wizard_summoner",
+    "name": "Boots of Recall",
+    "color": "#9ff5c4",
+    "star": "+30% pickup radius, +5% move speed",
+    "awaken": "Every gem you collect detonates where it lay",
+    "stats": {
+      "pickupMult": 0.3,
+      "moveSpeedMult": 0.05
+    },
+    "awakenFlags": [
+      "gemBlast"
+    ]
+  },
+  {
+    "id": "idol_of_storms",
+    "classId": 0,
+    "preset": "wizard_summoner",
+    "name": "Idol of Storms",
+    "color": "#ffd166",
+    "star": "A storm cloud strikes for you",
+    "awaken": "30% chance to strike again on every kill",
+    "ability": {
+      "kind": "thunder",
+      "visual": "bolt",
+      "interval": 3.6,
+      "damage": 26,
+      "radius": 28,
+      "count": 1,
+      "perStar": {
+        "damage": 8,
+        "interval": -0.2,
+        "count": 0.5
+      }
+    },
+    "awakenFlags": [
+      "recastOnKill"
+    ]
+  },
+  {
+    "id": "lanceblade",
+    "classId": 1,
+    "preset": "knight_vanguard",
+    "name": "Lanceblade",
+    "color": "#ffd166",
+    "star": "+12% damage, more pierce",
+    "awaken": "Every 7s a ring of lances sweeps out",
+    "stats": {
+      "damageMult": 0.12,
+      "pierce": 0.5
+    },
+    "awakenAbility": {
+      "kind": "volley",
+      "visual": "slash",
+      "interval": 7,
+      "count": 6
+    }
+  },
+  {
+    "id": "helm_of_the_charge",
+    "classId": 1,
+    "preset": "knight_vanguard",
+    "name": "Helm of the Charge",
+    "color": "#8fb8ff",
+    "star": "+8% damage the longer you keep moving",
+    "awaken": "You leave a scorched path behind you",
+    "stats": {
+      "moveDamage": 0.08,
+      "moveSpeedMult": 0.04
+    },
+    "awakenAbility": {
+      "kind": "trail",
+      "visual": "spark",
+      "interval": 0.4,
+      "damage": 15,
+      "radius": 18,
+      "duration": 2
+    }
+  },
+  {
+    "id": "bulwark_plate",
+    "classId": 1,
+    "preset": "knight_vanguard",
+    "name": "Bulwark Plate",
+    "color": "#a0a8b8",
+    "star": "+5% damage reduction",
+    "awaken": "A shield that reflects double what it blocks",
+    "stats": {
+      "damageReduction": 0.05
+    },
+    "awakenStats": {
+      "shield": 42,
+      "shieldRegen": 6
+    },
+    "awakenFlags": [
+      "shieldReflect"
+    ]
+  },
+  {
+    "id": "warhorn",
+    "classId": 1,
+    "preset": "knight_vanguard",
+    "name": "Warhorn",
+    "color": "#ff8f8f",
+    "star": "A fear pulse throws the crowd back",
+    "awaken": "The pulse hits far harder and knocks further",
+    "stats": {
+      "knockback": 26
+    },
+    "ability": {
+      "kind": "nova",
+      "visual": "ring",
+      "interval": 8,
+      "damage": 30,
+      "radius": 78,
+      "perStar": {
+        "damage": 9,
+        "interval": -0.3,
+        "radius": 4
+      }
+    },
+    "awakenAbility": {
+      "kind": "nova",
+      "visual": "ring",
+      "interval": 8,
+      "damage": 60,
+      "radius": 96
+    }
+  },
+  {
+    "id": "sabatons_of_wrath",
+    "classId": 1,
+    "preset": "knight_vanguard",
+    "name": "Sabatons of Wrath",
+    "color": "#9ff5c4",
+    "star": "Kills refund attack cooldown, +5% move speed",
+    "awaken": "Kills refund far more",
+    "stats": {
+      "cooldownOnKill": 2,
+      "moveSpeedMult": 0.05
+    },
+    "awakenStats": {
+      "cooldownOnKill": 6
+    }
+  },
+  {
+    "id": "oath_ring",
+    "classId": 1,
+    "preset": "knight_vanguard",
+    "name": "Oath Ring",
+    "color": "#ffb3c1",
+    "star": "Returns 20% of the hit, +14 max HP",
+    "awaken": "A whirlwind erupts every 4s",
+    "stats": {
+      "thorns": 0.2,
+      "maxHp": 14
+    },
+    "awakenAbility": {
+      "kind": "nova",
+      "visual": "slash",
+      "interval": 4,
+      "damage": 34,
+      "radius": 58
+    }
+  },
+  {
+    "id": "headsman_edge",
+    "classId": 1,
+    "preset": "knight_executioner",
+    "name": "Headsman's Edge",
+    "color": "#ffd166",
+    "star": "+15% damage",
+    "awaken": "Anything under 20% HP dies on the next hit",
+    "stats": {
+      "damageMult": 0.15
+    },
+    "awakenStats": {
+      "executeFrac": 0.2
+    }
+  },
+  {
+    "id": "grim_helm",
+    "classId": 1,
+    "preset": "knight_executioner",
+    "name": "Grim Helm",
+    "color": "#a0a8b8",
+    "star": "+7% critical chance",
+    "awaken": "Crits split the blade into shards",
+    "stats": {
+      "critChance": 0.07
+    },
+    "awakenFlags": [
+      "shatter"
+    ]
+  },
+  {
+    "id": "reaver_mail",
+    "classId": 1,
+    "preset": "knight_executioner",
+    "name": "Reaver Mail",
+    "color": "#ff8f8f",
+    "star": "Heals on kill, +14 max HP",
+    "awaken": "Overkill hardens into a shield",
+    "stats": {
+      "lifeOnKill": 0.6,
+      "maxHp": 14
+    },
+    "awakenStats": {
+      "shield": 50,
+      "shieldRegen": 8
+    }
+  },
+  {
+    "id": "chain_hook",
+    "classId": 1,
+    "preset": "knight_executioner",
+    "name": "Chain Hook",
+    "color": "#8fb8ff",
+    "star": "Hooks the crowd in and holds it",
+    "awaken": "The hook drags harder and cuts deeper",
+    "ability": {
+      "kind": "pull",
+      "visual": "storm",
+      "interval": 4,
+      "damage": 12,
+      "radius": 66,
+      "duration": 1.2,
+      "slow": 0.5,
+      "perStar": {
+        "damage": 5,
+        "radius": 5,
+        "interval": -0.2
+      }
+    },
+    "awakenAbility": {
+      "kind": "pull",
+      "visual": "storm",
+      "interval": 4,
+      "damage": 26,
+      "radius": 90,
+      "duration": 1.5,
+      "slow": 0.2
+    }
+  },
+  {
+    "id": "bloodied_greaves",
+    "classId": 1,
+    "preset": "knight_executioner",
+    "name": "Bloodied Greaves",
+    "color": "#9ff5c4",
+    "star": "+8% move speed, +15% crit damage",
+    "awaken": "+40% damage outright",
+    "stats": {
+      "moveSpeedMult": 0.08,
+      "critMult": 0.15
+    },
+    "awakenStats": {
+      "damageMult": 0.4
+    }
+  },
+  {
+    "id": "tally_signet",
+    "classId": 1,
+    "preset": "knight_executioner",
+    "name": "Tally Signet",
+    "color": "#ffb3c1",
+    "star": "+15% XP, +5% damage",
+    "awaken": "+15% critical chance",
+    "stats": {
+      "xpMult": 0.15,
+      "damageMult": 0.05
+    },
+    "awakenStats": {
+      "critChance": 0.15
+    }
+  },
+  {
+    "id": "pickaxe_of_veins",
+    "classId": 2,
+    "preset": "dwarf_prospector",
+    "name": "Pickaxe of Veins",
+    "color": "#ffd166",
+    "star": "+20% XP, +8% damage",
+    "awaken": "Collected gems detonate where they lay",
+    "stats": {
+      "xpMult": 0.2,
+      "damageMult": 0.08
+    },
+    "awakenFlags": [
+      "gemBlast"
+    ]
+  },
+  {
+    "id": "miners_helm",
+    "classId": 2,
+    "preset": "dwarf_prospector",
+    "name": "Miner's Helm",
+    "color": "#ffb347",
+    "star": "Your lamp burns what stands beside you",
+    "awaken": "The lamp becomes a searing beam every 3s",
+    "stats": {
+      "auraDps": 4,
+      "auraRadius": 11
+    },
+    "awakenAbility": {
+      "kind": "beam",
+      "visual": "explosion",
+      "interval": 3,
+      "damage": 30,
+      "radius": 16
+    }
+  },
+  {
+    "id": "ore_mail",
+    "classId": 2,
+    "preset": "dwarf_prospector",
+    "name": "Ore Mail",
+    "color": "#a0a8b8",
+    "star": "+4% damage reduction, +16 max HP",
+    "awaken": "The ore turns molten and burns everything close",
+    "stats": {
+      "damageReduction": 0.04,
+      "maxHp": 16
+    },
+    "awakenStats": {
+      "auraDps": 12,
+      "auraRadius": 38
+    }
+  },
+  {
+    "id": "dynamite_belt",
+    "classId": 2,
+    "preset": "dwarf_prospector",
+    "name": "Dynamite Belt",
+    "color": "#ff7b5c",
+    "star": "Lobs dynamite at the nearest enemy",
+    "awaken": "Every stick scatters 3 more",
+    "ability": {
+      "kind": "bomb",
+      "visual": "explosion",
+      "interval": 3,
+      "damage": 38,
+      "radius": 32,
+      "count": 1,
+      "perStar": {
+        "damage": 11,
+        "interval": -0.18,
+        "count": 0.25
+      }
+    },
+    "awakenFlags": [
+      "bombCluster"
+    ]
+  },
+  {
+    "id": "cart_boots",
+    "classId": 2,
+    "preset": "dwarf_prospector",
+    "name": "Cart Boots",
+    "color": "#9ff5c4",
+    "star": "+8% move speed",
+    "awaken": "You lay burning rail behind you",
+    "stats": {
+      "moveSpeedMult": 0.08
+    },
+    "awakenAbility": {
+      "kind": "trail",
+      "visual": "spark",
+      "interval": 0.3,
+      "damage": 15,
+      "radius": 16,
+      "duration": 2
+    }
+  },
+  {
+    "id": "gilded_charm",
+    "classId": 2,
+    "preset": "dwarf_prospector",
+    "name": "Gilded Charm",
+    "color": "#ffe08a",
+    "star": "+18% XP, +20% pickup radius",
+    "awaken": "A barrage of four kegs every 5s",
+    "stats": {
+      "xpMult": 0.18,
+      "pickupMult": 0.2
+    },
+    "awakenAbility": {
+      "kind": "bomb",
+      "visual": "explosion",
+      "interval": 5,
+      "damage": 45,
+      "radius": 40,
+      "count": 4
+    }
+  },
+  {
+    "id": "anvil_axe",
+    "classId": 2,
+    "preset": "dwarf_turret",
+    "name": "Anvil Axe",
+    "color": "#ffd166",
+    "star": "+12% damage, +5% area",
+    "awaken": "The axe leaves a fire pool where it stops",
+    "stats": {
+      "damageMult": 0.12,
+      "aoeMult": 0.05
+    },
+    "awakenFlags": [
+      "axeFirePool"
+    ]
+  },
+  {
+    "id": "helm_of_grit",
+    "classId": 2,
+    "preset": "dwarf_turret",
+    "name": "Helm of Grit",
+    "color": "#8fb8ff",
+    "star": "+24 max HP, +3% damage reduction",
+    "awaken": "A shield that rebuilds itself between hits",
+    "stats": {
+      "maxHp": 24,
+      "damageReduction": 0.03
+    },
+    "awakenStats": {
+      "shield": 45,
+      "shieldRegen": 5
+    }
+  },
+  {
+    "id": "bulwark_mail",
+    "classId": 2,
+    "preset": "dwarf_turret",
+    "name": "Bulwark Mail",
+    "color": "#a0a8b8",
+    "star": "+5% damage reduction, +5% damage while planted",
+    "awaken": "Your shield reflects double what it blocks",
+    "stats": {
+      "damageReduction": 0.05,
+      "stillDamage": 0.05
+    },
+    "awakenStats": {
+      "shield": 30,
+      "shieldRegen": 6
+    },
+    "awakenFlags": [
+      "shieldReflect"
+    ]
+  },
+  {
+    "id": "ballista_keg",
+    "classId": 2,
+    "preset": "dwarf_turret",
+    "name": "Ballista Keg",
+    "color": "#ff7b5c",
+    "star": "A ballista hovers beside you and fires",
+    "awaken": "+1 ballista, both fire harder",
+    "stats": {
+      "minionCount": 0.34,
+      "minionDamage": 8
+    },
+    "awakenStats": {
+      "minionCount": 1,
+      "minionDamage": 14
+    }
+  },
+  {
+    "id": "anchor_boots",
+    "classId": 2,
+    "preset": "dwarf_turret",
+    "name": "Anchor Boots",
+    "color": "#9ff5c4",
+    "star": "Slower, but far deadlier when planted",
+    "awaken": "Standing still doubles your damage",
+    "stats": {
+      "moveSpeedMult": -0.03,
+      "stillDamage": 0.1
+    },
+    "awakenStats": {
+      "stillDamage": 0.5
+    }
+  },
+  {
+    "id": "ember_brazier",
+    "classId": 2,
+    "preset": "dwarf_turret",
+    "name": "Ember Brazier",
+    "color": "#ffb347",
+    "star": "A brazier scorches whatever stands near",
+    "awaken": "Burn spreads from anything that dies burning",
+    "stats": {
+      "auraDps": 5,
+      "auraRadius": 9
+    },
+    "awakenStats": {
+      "burnDps": 12,
+      "burnSeconds": 3
+    },
+    "awakenFlags": [
+      "burnSpread"
+    ]
+  },
+  {
+    "id": "censer_of_ash",
+    "classId": 3,
+    "preset": "priest_inquisitor",
+    "name": "Censer of Ash",
+    "color": "#ff9f45",
+    "star": "Your hits set enemies burning",
+    "awaken": "Burn spreads from anything that dies burning",
+    "stats": {
+      "burnDps": 5,
+      "burnSeconds": 0.6
+    },
+    "awakenFlags": [
+      "burnSpread"
+    ]
+  },
+  {
+    "id": "mitre_of_zeal",
+    "classId": 3,
+    "preset": "priest_inquisitor",
+    "name": "Mitre of Zeal",
+    "color": "#fff3b0",
+    "star": "+12% damage",
+    "awaken": "+2 projectiles on every attack",
+    "stats": {
+      "damageMult": 0.12
+    },
+    "awakenStats": {
+      "volley": 2
+    }
+  },
+  {
+    "id": "hairshirt",
+    "classId": 3,
+    "preset": "priest_inquisitor",
+    "name": "Hairshirt",
+    "color": "#ffb3c1",
+    "star": "+9% damage, but you take a little more",
+    "awaken": "Punishment erupts from you every 5s",
+    "stats": {
+      "damageMult": 0.09,
+      "damageReduction": -0.02
+    },
+    "awakenAbility": {
+      "kind": "nova",
+      "visual": "ring",
+      "interval": 5,
+      "damage": 45,
+      "radius": 70
+    }
+  },
+  {
+    "id": "book_of_sins",
+    "classId": 3,
+    "preset": "priest_inquisitor",
+    "name": "Book of Sins",
+    "color": "#c8f0ff",
+    "star": "Judgement leaps between the guilty",
+    "awaken": "30% chance to judge again on every kill",
+    "ability": {
+      "kind": "thunder",
+      "visual": "bolt",
+      "interval": 3.2,
+      "damage": 28,
+      "radius": 24,
+      "count": 1,
+      "perStar": {
+        "damage": 9,
+        "interval": -0.18,
+        "count": 0.5
+      }
+    },
+    "awakenFlags": [
+      "recastOnKill"
+    ]
+  },
+  {
+    "id": "pilgrim_sandals",
+    "classId": 3,
+    "preset": "priest_inquisitor",
+    "name": "Pilgrim Sandals",
+    "color": "#9ff5c4",
+    "star": "+7% move speed",
+    "awaken": "Taking a hit grants a second of invincibility",
+    "stats": {
+      "moveSpeedMult": 0.07
+    },
+    "awakenFlags": [
+      "sprintInvuln"
+    ]
+  },
+  {
+    "id": "reliquary",
+    "classId": 3,
+    "preset": "priest_inquisitor",
+    "name": "Reliquary",
+    "color": "#ffe08a",
+    "star": "A pillar of light sears a line of enemies",
+    "awaken": "The light lingers as a burning path",
+    "ability": {
+      "kind": "beam",
+      "visual": "bolt",
+      "interval": 5,
+      "damage": 22,
+      "radius": 14,
+      "perStar": {
+        "damage": 7,
+        "interval": -0.3
+      }
+    },
+    "awakenAbility": {
+      "kind": "trail",
+      "visual": "spark",
+      "interval": 0.5,
+      "damage": 16,
+      "radius": 20,
+      "duration": 3
+    }
+  },
+  {
+    "id": "vestment_of_refuge",
+    "classId": 3,
+    "preset": "priest_shepherd",
+    "name": "Vestment of Refuge",
+    "color": "#8fb8ff",
+    "star": "A shield rebuilds itself between hits",
+    "awaken": "The shield reflects double what it blocks",
+    "stats": {
+      "shield": 18,
+      "shieldRegen": 8
+    },
+    "awakenFlags": [
+      "shieldReflect"
+    ]
+  },
+  {
+    "id": "halo_of_warding",
+    "classId": 3,
+    "preset": "priest_shepherd",
+    "name": "Halo of Warding",
+    "color": "#fff3b0",
+    "star": "Enemies near you crawl",
+    "awaken": "The ward burns as well as holds",
+    "stats": {
+      "auraSlow": 0.08,
+      "auraRadius": 11
+    },
+    "awakenStats": {
+      "auraDps": 14,
+      "auraRadius": 20
+    }
+  },
+  {
+    "id": "censer_of_souls",
+    "classId": 3,
+    "preset": "priest_shepherd",
+    "name": "Censer of Souls",
+    "color": "#c8f0ff",
+    "star": "Censers orbit you",
+    "awaken": "+2 censers, and kills mend you",
+    "stats": {
+      "orbiterCount": 0.5,
+      "orbiterDamage": 5
+    },
+    "awakenStats": {
+      "orbiterCount": 2,
+      "orbiterRadius": 14,
+      "lifeOnKill": 1
+    }
+  },
+  {
+    "id": "chalice_of_vigil",
+    "classId": 3,
+    "preset": "priest_shepherd",
+    "name": "Chalice of Vigil",
+    "color": "#ff8f8f",
+    "star": "Mends you on a steady beat",
+    "awaken": "The overflow burns the unclean around you",
+    "ability": {
+      "kind": "heal",
+      "visual": "spark",
+      "interval": 5,
+      "damage": 12,
+      "perStar": {
+        "damage": 5,
+        "interval": -0.2
+      }
+    },
+    "awakenStats": {
+      "auraDps": 12,
+      "auraRadius": 40
+    }
+  },
+  {
+    "id": "sandals_of_the_flock",
+    "classId": 3,
+    "preset": "priest_shepherd",
+    "name": "Sandals of the Flock",
+    "color": "#9ff5c4",
+    "star": "+30% pickup radius, +5% move speed",
+    "awaken": "Every kill mends you",
+    "stats": {
+      "pickupMult": 0.3,
+      "moveSpeedMult": 0.05
+    },
+    "awakenStats": {
+      "lifeOnKill": 1
+    }
+  },
+  {
+    "id": "tome_of_sanctuary",
+    "classId": 3,
+    "preset": "priest_shepherd",
+    "name": "Tome of Sanctuary",
+    "color": "#ffd6f5",
+    "star": "A sanctuary drops the crowd to a crawl",
+    "awaken": "The sanctuary holds harder and burns",
+    "ability": {
+      "kind": "snowstorm",
+      "visual": "storm",
+      "interval": 8,
+      "damage": 8,
+      "radius": 55,
+      "duration": 4,
+      "slow": 0.55,
+      "perStar": {
+        "damage": 3,
+        "radius": 4,
+        "interval": -0.3
+      }
+    },
+    "awakenAbility": {
+      "kind": "snowstorm",
+      "visual": "storm",
+      "interval": 8,
+      "damage": 18,
+      "radius": 72,
+      "duration": 5,
+      "slow": 0.7
+    }
+  },
+  {
+    "id": "gloves_of_the_gatherer",
+    "classId": -1,
+    "preset": "general",
+    "name": "Gloves of the Gatherer",
+    "color": "#5ee9a0",
+    "star": "+35% pickup radius",
+    "awaken": "Every drop on the map comes to you",
+    "stats": {
+      "pickupMult": 0.35
+    },
+    "awakenFlags": [
+      "unlimitedPickup"
+    ]
+  },
+  {
+    "id": "athena_helm",
+    "classId": -1,
+    "preset": "general",
+    "name": "Athena Helm",
+    "color": "#8fb8ff",
+    "star": "+5% damage reduction, returns 50% of the raw hit",
+    "awaken": "Returns double, and 3s of invincibility every 10s",
+    "stats": {
+      "damageReduction": 0.05,
+      "thorns": 0.5
+    },
+    "awakenFlags": [
+      "thornsDouble",
+      "invulnPulse"
+    ]
+  },
+  {
+    "id": "potion_of_vigour",
+    "classId": -1,
+    "preset": "general",
+    "name": "Potion of Vigour",
+    "color": "#ff8f8f",
+    "star": "Heals you every 10s",
+    "awaken": "Heals 30% of damage taken, and one revive per run",
+    "ability": {
+      "kind": "heal",
+      "visual": "spark",
+      "interval": 10,
+      "damage": 15,
+      "perStar": {
+        "damage": 6
+      }
+    },
+    "awakenFlags": [
+      "lifesteal",
+      "revive"
+    ]
+  }
+]

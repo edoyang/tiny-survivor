@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnEnemy, type EnemyStats } from '../entities/enemies.ts';
-import { CLASS_KNIGHT, CLASS_WIZARD, createWorld } from '../state.ts';
+import { CLASS_KNIGHT, CLASS_WIZARD } from '../kinds.ts';
+import { createWorld } from '../state.ts';
 import { advance, FIXED_DT } from '../step.ts';
 
 const TARGET_DUMMY: EnemyStats = {

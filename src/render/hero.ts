@@ -26,7 +26,8 @@ export function computeHeroPose(world: World, pose: HeroPose): void {
     pose.scaleX = 1;
     pose.scaleY = 1;
   }
-  const walkSwing = p.walking ? rig.weaponWalkSwingDeg * wave : rig.weaponWalkSwingDeg * 0.4 * wave;
+  const swingDeg = p.walking ? rig.weaponWalkSwingDeg : rig.weaponIdleSwingDeg;
+  const walkSwing = swingDeg * wave;
   let attackSwing = 0;
   const t = p.attackAnimT;
   if (t < rig.attackOutSeconds) {

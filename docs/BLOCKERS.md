@@ -18,3 +18,28 @@ Missing assets, unfixable failures, anything shipped disabled.
   instruction to read the SDK 57 docs online could not be followed. Substitute:
   reading the exact installed package sources and type declarations in
   `node_modules/`, which are version-exact for this project.
+
+## Gear presets rework (post-Phase 8)
+
+- **The 173 unused effect sheets were never looked at as pictures.** Only
+  seven are wired in, chosen by measured motion and size (see ASSETS.md), not
+  by seeing what they depict. If `FX_BOLT` does not read as lightning or
+  `FX_SLASH` does not read as a slash, swap the file in
+  `src/render/sources.ts` — the rest of the code does not care.
+- **No dedicated sprite for icicles, shards or bombs.** Icicles and shards
+  reuse the drawn missile bolt; bombs reuse the fireball strip. They are
+  distinguishable by their impact effect, not by their in-flight sprite.
+- **Minions have no sprite.** Familiars, spirits and ballistae all render as a
+  small `orb.png` (`projectiles.minionScale`). Four different builds summon
+  something and they all look identical.
+- **The Priest still has no weapon sprite** (carried over from Phase 0).
+- **The menu hero icons went blank once in the browser and came back on
+  reload.** Each `MenuSprite` is its own Skia `<Canvas>`, so the class select
+  screen holds eight WebGL contexts and the game screen holds a ninth;
+  browsers cap live contexts and drop the oldest. It has not reproduced since
+  the menu stopped using a ScrollView. If it returns after playing a run and
+  going back, the fix is one canvas for the whole menu, or a `.web.tsx` fork
+  of `MenuSprite` drawing an `<img>` with `image-rendering: pixelated`.
+- **"Skip confirmation" does not survive an app restart.** It is a module
+  variable; persisting it needs a storage dependency (AsyncStorage or
+  expo-sqlite), which was not added without being asked.

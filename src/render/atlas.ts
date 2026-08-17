@@ -1,6 +1,14 @@
 import { Skia, type SkImage, type SkRect } from '@shopify/react-native-skia';
 
-export type AtlasEntry = { name: string; image: SkImage; withFlipped?: boolean };
+export type AtlasEntry = {
+  name: string;
+  image: SkImage;
+  withFlipped?: boolean;
+  srcX?: number;
+  srcY?: number;
+  srcWidth?: number;
+  srcHeight?: number;
+};
 
 export type SpriteAtlas = {
   image: SkImage;
@@ -8,20 +16,53 @@ export type SpriteAtlas = {
 };
 
 const PADDING = 2;
+const MAX_WIDTH = 2048;
+
+type Placement = {
+  entry: AtlasEntry;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  flipped: boolean;
+};
 
 export function flippedName(name: string): string {
   return name + '#f';
 }
 
+function entryWidth(entry: AtlasEntry): number {
+  return entry.srcWidth ?? entry.image.width();
+}
+
+function entryHeight(entry: AtlasEntry): number {
+  return entry.srcHeight ?? entry.image.height();
+}
+
 export function buildAtlas(entries: AtlasEntry[]): SpriteAtlas {
-  let width = PADDING;
-  let height = 0;
-  for (const e of entries) {
-    const copies = e.withFlipped === true ? 2 : 1;
-    width += (e.image.width() + PADDING) * copies;
-    if (e.image.height() > height) height = e.image.height();
+  const placements: Placement[] = [];
+  let shelfX = PADDING;
+  let shelfY = PADDING;
+  let shelfHeight = 0;
+  let usedWidth = PADDING;
+  for (const entry of entries) {
+    const w = entryWidth(entry);
+    const h = entryHeight(entry);
+    const copies = entry.withFlipped === true ? 2 : 1;
+    for (let copy = 0; copy < copies; copy++) {
+      if (shelfX + w + PADDING > MAX_WIDTH) {
+        shelfY += shelfHeight + PADDING;
+        shelfX = PADDING;
+        shelfHeight = 0;
+      }
+      placements.push({ entry, x: shelfX, y: shelfY, width: w, height: h, flipped: copy === 1 });
+      shelfX += w + PADDING;
+      if (shelfX > usedWidth) usedWidth = shelfX;
+      if (h > shelfHeight) shelfHeight = h;
+    }
   }
-  height += PADDING * 2;
+  const width = usedWidth;
+  const height = shelfY + shelfHeight + PADDING;
   const surface = Skia.Surface.Make(width, height);
   if (surface === null) {
     throw new Error(`atlas offscreen surface ${width}x${height} failed`);
@@ -29,26 +70,33 @@ export function buildAtlas(entries: AtlasEntry[]): SpriteAtlas {
   const canvas = surface.getCanvas();
   const paint = Skia.Paint();
   const rects: Record<string, SkRect> = {};
-  let x = PADDING;
-  for (const e of entries) {
-    const w = e.image.width();
-    const h = e.image.height();
-    canvas.drawImage(e.image, x, PADDING, paint);
-    rects[e.name] = Skia.XYWHRect(x, PADDING, w, h);
-    x += w + PADDING;
-    if (e.withFlipped === true) {
-      canvas.save();
-      canvas.translate(x + w, PADDING);
+  for (const placement of placements) {
+    const entry = placement.entry;
+    const src = Skia.XYWHRect(
+      entry.srcX ?? 0,
+      entry.srcY ?? 0,
+      placement.width,
+      placement.height,
+    );
+    canvas.save();
+    if (placement.flipped) {
+      canvas.translate(placement.x + placement.width, placement.y);
       canvas.scale(-1, 1);
-      canvas.drawImage(e.image, 0, 0, paint);
-      canvas.restore();
-      rects[flippedName(e.name)] = Skia.XYWHRect(x, PADDING, w, h);
-      x += w + PADDING;
+    } else {
+      canvas.translate(placement.x, placement.y);
     }
+    canvas.drawImageRect(
+      entry.image,
+      src,
+      Skia.XYWHRect(0, 0, placement.width, placement.height),
+      paint,
+    );
+    canvas.restore();
+    const name = placement.flipped ? flippedName(entry.name) : entry.name;
+    rects[name] = Skia.XYWHRect(placement.x, placement.y, placement.width, placement.height);
   }
   surface.flush();
-  const image = surface.makeImageSnapshot();
-  return { image, rects };
+  return { image: surface.makeImageSnapshot(), rects };
 }
 
 export function makeMissileImage(color: string): SkImage {

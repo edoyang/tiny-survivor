@@ -1,15 +1,18 @@
 import waves from '../data/waves.json' with { type: 'json' };
 import { initEnemy, spawnEnemy, type EnemyStats } from '../entities/enemies.ts';
 import { MONSTER_IDS, MONSTER_STATS } from '../entities/monsterTypes.ts';
+import { BOSS_FINAL, BOSS_MINI, BOSS_NONE } from '../kinds.ts';
 import { nextFloat, nextInt } from '../rng.ts';
 import { ENEMY_CAP, FIXED_DT, type Enemy, type World } from '../state.ts';
 
-type Bracket = {
+type Pack = {
   untilTick: number;
+  intervalTicks: number;
+  packSize: number;
+  arcRad: number;
   typeIndices: number[];
   cumulativeWeights: number[];
   totalWeight: number;
-  spawnsPerSecond: number;
   hpScale: number;
   speedScale: number;
 };
@@ -20,29 +23,35 @@ function monsterIndex(id: string): number {
   return index;
 }
 
-const BRACKETS: Bracket[] = waves.brackets.map((b) => {
+const PACKS: Pack[] = waves.packs.map((p) => {
   const cumulative: number[] = [];
   let total = 0;
-  for (const w of b.weights) {
+  for (const w of p.weights) {
     total += w;
     cumulative.push(total);
   }
   return {
-    untilTick: Math.round(b.untilSeconds / FIXED_DT),
-    typeIndices: b.types.map(monsterIndex),
+    untilTick: Math.round(p.untilSeconds / FIXED_DT),
+    intervalTicks: Math.max(1, Math.round(p.intervalSeconds / FIXED_DT)),
+    packSize: p.packSize,
+    arcRad: (p.arcDegrees * Math.PI) / 180,
+    typeIndices: p.types.map(monsterIndex),
     cumulativeWeights: cumulative,
     totalWeight: total,
-    spawnsPerSecond: b.spawnsPerSecond,
-    hpScale: b.hpScale,
-    speedScale: b.speedScale,
+    hpScale: p.hpScale,
+    speedScale: p.speedScale,
   };
 });
 
-const BURST_INTERVAL_TICKS = Math.round(waves.burst.intervalSeconds / FIXED_DT);
+const HORDE_TICKS = waves.hordes.map((h) => Math.round(h.atSeconds / FIXED_DT));
+const ELITE_FIRST_TICK = Math.round(waves.elite.firstSeconds / FIXED_DT);
 const ELITE_INTERVAL_TICKS = Math.round(waves.elite.intervalSeconds / FIXED_DT);
-const BOSS_INTERVAL_TICKS = Math.round(waves.boss.intervalSeconds / FIXED_DT);
+const MINI_BOSS_TICK = Math.round(waves.miniBoss.atSeconds / FIXED_DT);
+const BOSS_TICK = Math.round(waves.boss.atSeconds / FIXED_DT);
+const MINI_BOSS_TYPE = monsterIndex(waves.miniBoss.type);
+const BOSS_TYPE = monsterIndex(waves.boss.type);
+export const RUN_TICKS = Math.round(waves.runSeconds / FIXED_DT);
 export const CONCURRENT_CAP = Math.min(waves.concurrentCap, ENEMY_CAP);
-const BOSS_TYPE = monsterIndex('monster');
 
 export function spawnRingRadius(world: World): number {
   const halfW = world.viewWidth / 2;
@@ -50,23 +59,20 @@ export function spawnRingRadius(world: World): number {
   return Math.sqrt(halfW * halfW + halfH * halfH) + waves.spawnRingMargin;
 }
 
-function currentBracket(world: World): Bracket {
+function currentPack(world: World): Pack {
   const spawn = world.spawn;
-  while (
-    spawn.bracketIndex < BRACKETS.length - 1 &&
-    world.tick >= BRACKETS[spawn.bracketIndex].untilTick
-  ) {
-    spawn.bracketIndex++;
+  while (spawn.packIndex < PACKS.length - 1 && world.tick >= PACKS[spawn.packIndex].untilTick) {
+    spawn.packIndex++;
   }
-  return BRACKETS[spawn.bracketIndex];
+  return PACKS[spawn.packIndex];
 }
 
-function pickBracketType(world: World, bracket: Bracket): number {
-  const roll = nextFloat(world.rng) * bracket.totalWeight;
-  for (let i = 0; i < bracket.cumulativeWeights.length; i++) {
-    if (roll < bracket.cumulativeWeights[i]) return bracket.typeIndices[i];
+function pickPackType(world: World, pack: Pack): number {
+  const roll = nextFloat(world.rng) * pack.totalWeight;
+  for (let i = 0; i < pack.cumulativeWeights.length; i++) {
+    if (roll < pack.cumulativeWeights[i]) return pack.typeIndices[i];
   }
-  return bracket.typeIndices[bracket.typeIndices.length - 1];
+  return pack.typeIndices[pack.typeIndices.length - 1];
 }
 
 function farthestEnemyIndex(world: World): number {
@@ -75,6 +81,7 @@ function farthestEnemyIndex(world: World): number {
   let bestD2 = -1;
   for (let i = 0; i < world.enemies.count; i++) {
     const e = world.enemies.items[i];
+    if (e.boss !== BOSS_NONE) continue;
     const dx = e.pos.x - p.pos.x;
     const dy = e.pos.y - p.pos.y;
     const d2 = dx * dx + dy * dy;
@@ -86,20 +93,22 @@ function farthestEnemyIndex(world: World): number {
   return farthest;
 }
 
-function spawnScaled(
+function spawnAt(
   world: World,
   stats: EnemyStats,
-  bracket: Bracket,
   angle: number,
+  ringRadius: number,
+  hpScale: number,
+  speedScale: number,
   hpMult: number,
   damageMult: number,
   xpMult: number,
   speedMult: number,
   scale: number,
+  boss: number,
 ): Enemy | null {
-  const radius = spawnRingRadius(world);
-  const x = world.camera.pos.x + Math.cos(angle) * radius;
-  const y = world.camera.pos.y + Math.sin(angle) * radius;
+  const x = world.camera.pos.x + Math.cos(angle) * ringRadius;
+  const y = world.camera.pos.y + Math.sin(angle) * ringRadius;
   const phase = nextFloat(world.rng);
   let enemy: Enemy | null;
   if (world.enemies.count >= CONCURRENT_CAP) {
@@ -109,66 +118,138 @@ function spawnScaled(
     enemy = spawnEnemy(world, stats, x, y, phase);
     if (enemy === null) return null;
   }
-  enemy.hp = Math.round(stats.hp * bracket.hpScale * hpMult);
+  enemy.hp = Math.round(stats.hp * hpScale * hpMult);
   enemy.maxHp = enemy.hp;
-  enemy.speed = stats.speed * bracket.speedScale * speedMult;
+  enemy.speed = stats.speed * speedScale * speedMult;
   enemy.contactDamage = stats.damage * damageMult;
   enemy.xp = stats.xp * xpMult;
   enemy.scale = scale;
   enemy.radius = stats.radius * scale;
+  enemy.boss = boss;
   return enemy;
 }
 
-function spawnRegular(world: World, bracket: Bracket): void {
-  const type = pickBracketType(world, bracket);
-  const angle = nextFloat(world.rng) * Math.PI * 2;
-  spawnScaled(world, MONSTER_STATS[type], bracket, angle, 1, 1, 1, 1, 1);
-}
-
-function spawnBurst(world: World, bracket: Bracket): void {
-  const type = pickBracketType(world, bracket);
+function spawnPack(world: World, pack: Pack): void {
+  const ring = spawnRingRadius(world);
   const baseAngle = nextFloat(world.rng) * Math.PI * 2;
-  const arc = (waves.burst.arcDegrees * Math.PI) / 180;
-  for (let i = 0; i < waves.burst.count; i++) {
-    const angle = baseAngle + (nextFloat(world.rng) - 0.5) * arc;
-    spawnScaled(world, MONSTER_STATS[type], bracket, angle, 1, 1, 1, 1, 1);
+  const type = pickPackType(world, pack);
+  for (let i = 0; i < pack.packSize; i++) {
+    const angle = baseAngle + (nextFloat(world.rng) - 0.5) * pack.arcRad;
+    const radius = ring + nextFloat(world.rng) * 24;
+    spawnAt(
+      world,
+      MONSTER_STATS[type],
+      angle,
+      radius,
+      pack.hpScale,
+      pack.speedScale,
+      1,
+      1,
+      1,
+      1,
+      1,
+      BOSS_NONE,
+    );
   }
 }
 
-function spawnElite(world: World, bracket: Bracket): void {
-  const type = bracket.typeIndices[nextInt(world.rng, 0, bracket.typeIndices.length)];
+function spawnHorde(world: World, hordeIndex: number, pack: Pack): void {
+  const horde = waves.hordes[hordeIndex];
+  const ring = spawnRingRadius(world) + horde.ringMargin;
+  for (let i = 0; i < horde.count; i++) {
+    const angle = (i / horde.count) * Math.PI * 2 + nextFloat(world.rng) * 0.05;
+    const type = pickPackType(world, pack);
+    spawnAt(
+      world,
+      MONSTER_STATS[type],
+      angle,
+      ring,
+      horde.hpScale,
+      horde.speedScale,
+      1,
+      1,
+      1,
+      1,
+      1,
+      BOSS_NONE,
+    );
+  }
+}
+
+function spawnElite(world: World, pack: Pack): void {
+  const type = pack.typeIndices[nextInt(world.rng, 0, pack.typeIndices.length)];
   const angle = nextFloat(world.rng) * Math.PI * 2;
   const e = waves.elite;
-  spawnScaled(world, MONSTER_STATS[type], bracket, angle, e.hpMult, e.damageMult, e.xpMult, e.speedMult, e.scale);
+  spawnAt(
+    world,
+    MONSTER_STATS[type],
+    angle,
+    spawnRingRadius(world),
+    pack.hpScale,
+    pack.speedScale,
+    e.hpMult,
+    e.damageMult,
+    e.xpMult,
+    e.speedMult,
+    e.scale,
+    BOSS_NONE,
+  );
 }
 
-function spawnBoss(world: World, bracket: Bracket): void {
+function spawnBoss(
+  world: World,
+  type: number,
+  config: { hpMult: number; damageMult: number; xpMult: number; speedMult: number; scale: number },
+  pack: Pack,
+  tag: number,
+): void {
   const angle = nextFloat(world.rng) * Math.PI * 2;
-  const b = waves.boss;
-  spawnScaled(world, MONSTER_STATS[BOSS_TYPE], bracket, angle, b.hpMult, b.damageMult, b.xpMult, b.speedMult, b.scale);
+  spawnAt(
+    world,
+    MONSTER_STATS[type],
+    angle,
+    spawnRingRadius(world),
+    pack.hpScale,
+    pack.speedScale,
+    config.hpMult,
+    config.damageMult,
+    config.xpMult,
+    config.speedMult,
+    config.scale,
+    tag,
+  );
 }
 
-export function updateSpawning(world: World, dt: number): void {
+export function updateSpawning(world: World): void {
   const spawn = world.spawn;
-  if (spawn.nextBurstTick === 0) spawn.nextBurstTick = BURST_INTERVAL_TICKS;
-  if (spawn.nextEliteTick === 0) spawn.nextEliteTick = ELITE_INTERVAL_TICKS;
-  if (spawn.nextBossTick === 0) spawn.nextBossTick = BOSS_INTERVAL_TICKS;
-  const bracket = currentBracket(world);
-  spawn.accumulator += bracket.spawnsPerSecond * dt;
-  while (spawn.accumulator >= 1) {
-    spawn.accumulator -= 1;
-    spawnRegular(world, bracket);
+  const pack = currentPack(world);
+  if (spawn.nextPackTick === 0) spawn.nextPackTick = pack.intervalTicks;
+  if (spawn.nextEliteTick === 0) spawn.nextEliteTick = ELITE_FIRST_TICK;
+
+  if (!spawn.bossDone) {
+    if (world.tick >= spawn.nextPackTick) {
+      spawn.nextPackTick = world.tick + pack.intervalTicks;
+      spawnPack(world, pack);
+    }
+    if (world.tick >= spawn.nextEliteTick) {
+      spawn.nextEliteTick = world.tick + ELITE_INTERVAL_TICKS;
+      spawnElite(world, pack);
+    }
+    while (
+      spawn.hordeIndex < HORDE_TICKS.length &&
+      world.tick >= HORDE_TICKS[spawn.hordeIndex]
+    ) {
+      spawnHorde(world, spawn.hordeIndex, pack);
+      spawn.hordeIndex++;
+    }
   }
-  if (world.tick >= spawn.nextBurstTick) {
-    spawn.nextBurstTick += BURST_INTERVAL_TICKS;
-    spawnBurst(world, bracket);
+
+  if (!spawn.miniBossDone && world.tick >= MINI_BOSS_TICK) {
+    spawn.miniBossDone = true;
+    spawnBoss(world, MINI_BOSS_TYPE, waves.miniBoss, pack, BOSS_MINI);
   }
-  if (world.tick >= spawn.nextEliteTick) {
-    spawn.nextEliteTick += ELITE_INTERVAL_TICKS;
-    spawnElite(world, bracket);
-  }
-  if (world.tick >= spawn.nextBossTick) {
-    spawn.nextBossTick += BOSS_INTERVAL_TICKS;
-    spawnBoss(world, bracket);
+  if (!spawn.bossDone && world.tick >= BOSS_TICK) {
+    spawn.bossDone = true;
+    spawnBoss(world, BOSS_TYPE, waves.boss, pack, BOSS_FINAL);
   }
 }
