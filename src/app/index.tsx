@@ -1,8 +1,8 @@
 import { router } from 'expo-router';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import classes from '../game/data/classes.json' with { type: 'json' };
-import { PRESETS } from '../game/systems/items.ts';
-import { claimIdle, idleFraction, idlePending, MAPS } from '../meta/state.ts';
+import { ITEMS, PRESETS } from '../game/systems/items.ts';
+import { claimIdle, idleFraction, idlePending, MAPS, ownedStars } from '../meta/state.ts';
 import { updateMeta } from '../meta/store.ts';
 import { UI_ICONS } from '../render/icons.ts';
 import { MenuSprite } from '../render/MenuSprite.tsx';
@@ -19,6 +19,7 @@ export default function Home() {
   const preset = PRESETS[meta.presetId];
   const accent = CLASS_COLORS[meta.classId];
   const map = MAPS[meta.mapId];
+  const ownedCount = ITEMS.filter((item) => ownedStars(meta, item.id) > 0).length;
   const pending = now === 0 ? 0 : idlePending(meta, now);
   const fraction = now === 0 ? 0 : idleFraction(meta, now);
 
@@ -37,12 +38,7 @@ export default function Home() {
         </Frame>
       </Pressable>
 
-      <Frame
-        outline={COLORS.gold}
-        fill={COLORS.stone}
-        style={styles.idleFrame}
-        innerStyle={styles.idleCard}
-      >
+      <Frame outline={COLORS.gold} fill={COLORS.stone} innerStyle={styles.idleCard}>
         <View style={styles.idleHead}>
           <Image source={UI_ICONS.idle} style={styles.idleIcon} />
           <View style={styles.idleHeadText}>
@@ -73,6 +69,26 @@ export default function Home() {
         />
       </Frame>
 
+      <Frame outline={COLORS.ink} fill={COLORS.stone} style={styles.collectionFrame} innerStyle={styles.collectionCard}>
+        <View style={styles.collectionHead}>
+          <Image source={UI_ICONS.inventory} style={styles.collectionIcon} />
+          <View style={styles.collectionText}>
+            <Text style={styles.collectionTitle}>COLLECTION</Text>
+            <Text style={styles.collectionNote}>
+              {ownedCount} of {ITEMS.length} pieces of gear found
+            </Text>
+          </View>
+        </View>
+        <SegmentBar
+          ratio={ownedCount / ITEMS.length}
+          color={COLORS.xp}
+          track={COLORS.stoneDeep}
+          height={12}
+          segments={10}
+        />
+        <PixelButton label="SUMMON GEAR" onPress={() => router.replace('/gacha')} />
+      </Frame>
+
       <Frame outline={COLORS.ink} fill={COLORS.stone} innerStyle={styles.nextCard}>
         <View style={styles.nextText}>
           <Text style={styles.nextLabel}>NEXT RUN</Text>
@@ -96,8 +112,7 @@ const styles = StyleSheet.create({
   heroName: { fontFamily: MONO, fontSize: 20, fontWeight: 'bold', letterSpacing: 2 },
   heroBuild: { color: COLORS.parchment, fontFamily: MONO, fontSize: 12, letterSpacing: 1, marginTop: 2 },
   heroHint: { color: COLORS.muted, fontFamily: MONO, fontSize: 9, letterSpacing: 1, marginTop: 6 },
-  idleFrame: { flex: 1, marginTop: 10 },
-  idleCard: { flex: 1, padding: 12, gap: 10, justifyContent: 'center' },
+  idleCard: { marginTop: 10, padding: 12, gap: 10 },
   idleHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   idleIcon: { width: 30, height: 30 },
   idleHeadText: { flex: 1 },
@@ -107,6 +122,13 @@ const styles = StyleSheet.create({
   coinIcon: { width: 22, height: 22 },
   idleAmount: { color: COLORS.parchment, fontFamily: MONO, fontSize: 30, fontWeight: 'bold' },
   idleCap: { color: COLORS.muted, fontFamily: MONO, fontSize: 9, letterSpacing: 1, textAlign: 'center' },
+  collectionFrame: { flex: 1, marginTop: 10 },
+  collectionCard: { flex: 1, padding: 12, gap: 10, justifyContent: 'center' },
+  collectionHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  collectionIcon: { width: 28, height: 28 },
+  collectionText: { flex: 1 },
+  collectionTitle: { color: COLORS.parchment, fontFamily: MONO, fontSize: 13, fontWeight: 'bold', letterSpacing: 2 },
+  collectionNote: { color: COLORS.muted, fontSize: 11, marginTop: 2 },
   nextCard: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 10, marginTop: 10 },
   nextText: { flex: 1 },
   nextLabel: { color: COLORS.muted, fontFamily: MONO, fontSize: 9, letterSpacing: 2 },
