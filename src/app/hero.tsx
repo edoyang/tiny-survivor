@@ -12,6 +12,7 @@ import {
 } from '../meta/state.ts';
 import { updateMeta } from '../meta/store.ts';
 import { GearIcon } from '../render/GearIcon.tsx';
+import { TILE_CHROME, useGrid } from '../render/grid.ts';
 import { MenuSprite } from '../render/MenuSprite.tsx';
 import { MetaScreen } from '../render/MetaChrome.tsx';
 import { Frame } from '../render/PixelUi.tsx';
@@ -28,8 +29,11 @@ function StatRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+const LOADOUT_COLUMNS = 4;
+
 export default function Hero() {
   const meta = useMeta();
+  const grid = useGrid(LOADOUT_COLUMNS);
   const cls = classes[meta.classId];
   const accent = CLASS_COLORS[meta.classId];
   const equipped = equippedFor(meta, meta.presetId);
@@ -39,7 +43,7 @@ export default function Hero() {
   const player = preview.player;
 
   return (
-    <MetaScreen title="HERO" subtitle="EQUIP UP TO FIVE PIECES">
+    <MetaScreen title="LOADOUT" subtitle="TAP A PIECE TO ADD OR REMOVE IT" back="/">
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.classRow}>
           {classes.map((entry, classId) => {
@@ -103,10 +107,14 @@ export default function Hero() {
           })}
         </View>
 
-        <Text style={styles.sectionLabel}>
-          LOADOUT {equipped.length}/{EQUIP_SLOTS}
-        </Text>
-        <View style={styles.gearGrid}>
+        <View style={styles.sectionHead}>
+          <Text style={styles.sectionLabel}>EQUIPPED</Text>
+          <View style={styles.sectionRule} />
+          <Text style={styles.sectionCount}>
+            {equipped.length}/{EQUIP_SLOTS}
+          </Text>
+        </View>
+        <View style={[styles.gearGrid, { gap: grid.gutter }]}>
           {itemsForPreset(meta.presetId).map((itemIndex) => {
             const item = ITEMS[itemIndex];
             const stars = ownedStars(meta, item.id);
@@ -116,24 +124,29 @@ export default function Hero() {
                 key={item.id}
                 accessibilityRole="button"
                 onPress={() => updateMeta((state) => toggleEquip(state, state.presetId, item.id))}
-                style={styles.gearCell}
+                style={[styles.gearCell, { width: grid.tile + TILE_CHROME }]}
               >
-                <GearIcon itemIndex={itemIndex} size={56} level={stars} />
+                <GearIcon
+                  itemIndex={itemIndex}
+                  size={grid.tile}
+                  level={stars}
+                  equipped={isEquipped}
+                />
                 <Text
                   style={[styles.gearName, isEquipped ? { color: item.color } : null]}
                   numberOfLines={2}
                 >
                   {item.name}
                 </Text>
-                <Text style={styles.gearState}>
-                  {stars === 0 ? 'LOCKED' : isEquipped ? 'EQUIPPED' : 'OWNED'}
-                </Text>
               </Pressable>
             );
           })}
         </View>
 
-        <Text style={styles.sectionLabel}>WITH THIS LOADOUT</Text>
+        <View style={styles.sectionHead}>
+          <Text style={styles.sectionLabel}>WITH THIS LOADOUT</Text>
+          <View style={styles.sectionRule} />
+        </View>
         <Frame outline={accent} fill={COLORS.stone} innerStyle={styles.statBox}>
           <StatRow label="MAX HP" value={String(player.maxHp)} />
           <StatRow label="DAMAGE" value={`x${player.damageMult.toFixed(2)}`} />
@@ -149,7 +162,7 @@ export default function Hero() {
 }
 
 const styles = StyleSheet.create({
-  content: { paddingBottom: 12, gap: 10 },
+  content: { paddingBottom: 20, gap: 12 },
   classRow: { flexDirection: 'row', gap: 6 },
   classItem: { flex: 1 },
   classBody: { alignItems: 'center', paddingVertical: 6, gap: 2 },
@@ -159,11 +172,13 @@ const styles = StyleSheet.create({
   buildBody: { paddingVertical: 10, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center', minHeight: 44 },
   buildName: { color: COLORS.muted, fontFamily: MONO, fontSize: 10, letterSpacing: 0.5, textAlign: 'center' },
   buildNameActive: { color: COLORS.gold, fontWeight: 'bold' },
-  sectionLabel: { color: COLORS.muted, fontFamily: MONO, fontSize: 10, letterSpacing: 2, marginTop: 4 },
-  gearGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  gearCell: { width: 72, alignItems: 'center', gap: 3 },
-  gearName: { color: COLORS.muted, fontSize: 9, lineHeight: 12, textAlign: 'center' },
-  gearState: { color: COLORS.muted, fontFamily: MONO, fontSize: 8, letterSpacing: 1 },
+  sectionHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
+  sectionLabel: { color: COLORS.muted, fontFamily: MONO, fontSize: 10, letterSpacing: 2 },
+  sectionRule: { flex: 1, height: 2, backgroundColor: COLORS.stoneRaised },
+  sectionCount: { color: COLORS.muted, fontFamily: MONO, fontSize: 10 },
+  gearGrid: { flexDirection: 'row', flexWrap: 'wrap' },
+  gearCell: { alignItems: 'center', gap: 4 },
+  gearName: { color: COLORS.muted, fontSize: 9, lineHeight: 12, textAlign: 'center', height: 24 },
   statBox: { padding: 10, gap: 6 },
   statRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
   statLabel: { color: COLORS.muted, fontFamily: MONO, fontSize: 10, letterSpacing: 1 },

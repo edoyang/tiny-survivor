@@ -154,7 +154,7 @@ export default function HeroSelect() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.ink, paddingHorizontal: 10 },
+  root: { flex: 1, backgroundColor: COLORS.ink, paddingHorizontal: 12 },
   header: { alignItems: 'center', paddingBottom: 8 },
   title: {
     color: COLORS.gold,

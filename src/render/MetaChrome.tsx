@@ -2,6 +2,7 @@ import { router, usePathname } from 'expo-router';
 import type { ReactNode } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SCREEN_PADDING } from './grid.ts';
 import { UI_ICONS } from './icons.ts';
 import { Frame } from './PixelUi.tsx';
 import { COLORS, MONO } from './theme.ts';
@@ -11,7 +12,6 @@ type Tab = { route: string; label: string; icon: number; primary?: boolean };
 
 const TABS: Tab[] = [
   { route: '/', label: 'HOME', icon: UI_ICONS.idle },
-  { route: '/hero', label: 'HERO', icon: UI_ICONS.hero },
   { route: '/inventory', label: 'BAG', icon: UI_ICONS.inventory },
   { route: '/battle', label: 'BATTLE', icon: UI_ICONS.battle, primary: true },
   { route: '/gacha', label: 'SUMMON', icon: UI_ICONS.gacha },
@@ -69,16 +69,25 @@ export function MetaNav() {
 export function MetaScreen({
   title,
   subtitle,
+  back,
   children,
 }: {
   title: string;
   subtitle?: string;
+  back?: string;
   children: ReactNode;
 }) {
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.screen, { paddingTop: insets.top + 8 }]}>
       <View style={styles.header}>
+        {back !== undefined && (
+          <Pressable onPress={() => router.replace(back)} hitSlop={10} accessibilityRole="button">
+            <Frame outline={COLORS.ink} fill={COLORS.stoneRaised} innerStyle={styles.backButton}>
+              <View style={styles.backArrow} />
+            </Frame>
+          </Pressable>
+        )}
         <View style={styles.headerText}>
           <Text style={styles.title}>{title}</Text>
           {subtitle !== undefined && <Text style={styles.subtitle}>{subtitle}</Text>}
@@ -95,16 +104,27 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: COLORS.ink },
   header: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    alignItems: 'center',
     gap: 10,
-    paddingHorizontal: 10,
-    paddingBottom: 8,
+    paddingHorizontal: SCREEN_PADDING,
+    paddingBottom: 12,
+  },
+  backButton: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
+  backArrow: {
+    width: 0,
+    height: 0,
+    borderTopWidth: 7,
+    borderBottomWidth: 7,
+    borderRightWidth: 10,
+    borderTopColor: 'transparent',
+    borderBottomColor: 'transparent',
+    borderRightColor: COLORS.parchment,
+    marginRight: 3,
   },
   headerText: { flex: 1 },
   title: { color: COLORS.gold, fontFamily: MONO, fontSize: 18, fontWeight: 'bold', letterSpacing: 3 },
   subtitle: { color: COLORS.muted, fontFamily: MONO, fontSize: 9, letterSpacing: 1, marginTop: 2 },
-  body: { flex: 1, minHeight: 0, paddingHorizontal: 10 },
+  body: { flex: 1, minHeight: 0, paddingHorizontal: SCREEN_PADDING },
   currencyRow: { gap: 4 },
   currencyChip: {
     flexDirection: 'row',
@@ -123,10 +143,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'right',
   },
-  nav: { flexDirection: 'row', gap: 3, paddingHorizontal: 6, paddingTop: 6 },
+  nav: { flexDirection: 'row', gap: 6, paddingHorizontal: SCREEN_PADDING, paddingTop: 8 },
   navItem: { flex: 1 },
-  navBody: { alignItems: 'center', justifyContent: 'center', paddingVertical: 6, gap: 2 },
-  navIcon: { width: 22, height: 22 },
-  navLabel: { color: COLORS.muted, fontFamily: MONO, fontSize: 8, letterSpacing: 0.5 },
+  navBody: { alignItems: 'center', justifyContent: 'center', paddingVertical: 8, gap: 3 },
+  navIcon: { width: 26, height: 26 },
+  navLabel: { color: COLORS.muted, fontFamily: MONO, fontSize: 9, letterSpacing: 0.5 },
   navLabelPrimary: { color: COLORS.gold, fontWeight: 'bold' },
 });

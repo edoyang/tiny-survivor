@@ -242,3 +242,29 @@ Every place one reading of the spec was picked over another.
   passed to the renderer so the five maps do not all look the same.
 - **Prose uses hyphens, never em dashes**, in code, documents and commits, per
   the owner's instruction.
+
+## Layout pass (owner feedback round 3)
+
+- **The hero tab is gone from the bottom bar.** Five slots now: home, bag,
+  battle, summon, shop. Gearing is reached from the camp portrait ("tap to
+  change loadout") and from a button in the bag detail sheet, which is where a
+  player is when they think about gear.
+- **Every grid is computed, not guessed.** `src/render/grid.ts` derives the
+  tile size and the gutter from the screen width for a given column count, so
+  a row is flush with both screen edges on any device. The bag is five
+  columns, the loadout four, summon results five. Tile chrome is 4px (the
+  frame's outer padding; the bevel border sits inside the tile width because
+  React Native uses border-box).
+- **The bag is grouped, not one long wrap.** Three sections with counts: in
+  loadout, owned, not found. Owned pieces sort by star level. The detail sheet
+  at the bottom has a fixed height so the grid does not reflow when you select
+  a different piece.
+- **Equipped gear carries a check mark**, not just a different outline colour.
+  Outline colour alone was carrying two meanings (rarity and equipped state).
+- **The camp screen is a stage.** Portrait area on top, information shelf
+  pinned to the bottom of the panel with the hero name, build, the five
+  equipped pieces and the gear count. Before this it was three stacked cards
+  with a void in the middle, which is what a layout looks like when nobody
+  decided where the eye should go.
+- **One primary action per screen.** Camp ends in TO BATTLE at the bottom, in
+  thumb reach; everything else on that screen is secondary.
