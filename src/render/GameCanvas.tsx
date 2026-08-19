@@ -29,7 +29,15 @@ function emptyPicture(): SkPicture {
   return recorder.finishRecordingAsPicture();
 }
 
-export function GameCanvas({ world, paused }: { world: World; paused: { current: boolean } }) {
+export function GameCanvas({
+  world,
+  paused,
+  floorTint,
+}: {
+  world: World;
+  paused: { current: boolean };
+  floorTint: string;
+}) {
   const { width, height } = useWindowDimensions();
   const picture = useSharedValue<SkPicture>(emptyPicture());
   const [joystick] = useState(createJoystick);
@@ -127,11 +135,13 @@ export function GameCanvas({ world, paused }: { world: World; paused: { current:
       }
     }
     const atlas = buildAtlas(entries);
-    const ctx = createRenderContext(atlas, width, height, {
-      body: heroBody,
-      weapon: heroWeapon,
-      tinted: cls.weaponTinted,
-    });
+    const ctx = createRenderContext(
+      atlas,
+      width,
+      height,
+      { body: heroBody, weapon: heroWeapon, tinted: cls.weaponTinted },
+      floorTint,
+    );
     world.viewWidth = ctx.viewWidth;
     world.viewHeight = ctx.viewHeight;
     let raf = 0;
@@ -193,6 +203,7 @@ export function GameCanvas({ world, paused }: { world: World; paused: { current:
     fx5,
     fx6,
     cls,
+    floorTint,
     width,
     height,
     joystick,

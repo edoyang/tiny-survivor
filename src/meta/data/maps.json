@@ -1,0 +1,52 @@
+[
+  {
+    "id": "sunken_crypt",
+    "name": "Sunken Crypt",
+    "blurb": "Flooded halls under the keep. Slow, shallow, forgiving.",
+    "hpMult": 1,
+    "speedMult": 1,
+    "rewardMult": 1,
+    "tint": "#1b0f2e55",
+    "clearsToUnlock": 0
+  },
+  {
+    "id": "ember_mines",
+    "name": "Ember Mines",
+    "blurb": "Coal seams still burning. Everything down here hits harder.",
+    "hpMult": 1.25,
+    "speedMult": 1.05,
+    "rewardMult": 1.4,
+    "tint": "#3a0f1055",
+    "clearsToUnlock": 1
+  },
+  {
+    "id": "frost_reach",
+    "name": "Frost Reach",
+    "blurb": "Open ice. Nothing slows down, and nothing stops coming.",
+    "hpMult": 1.45,
+    "speedMult": 1.18,
+    "rewardMult": 1.9,
+    "tint": "#0d2a4055",
+    "clearsToUnlock": 2
+  },
+  {
+    "id": "rot_garden",
+    "name": "Rot Garden",
+    "blurb": "Overgrown and thick with bodies. Dense from the first minute.",
+    "hpMult": 1.8,
+    "speedMult": 1.22,
+    "rewardMult": 2.5,
+    "tint": "#12300f55",
+    "clearsToUnlock": 3
+  },
+  {
+    "id": "black_spire",
+    "name": "Black Spire",
+    "blurb": "The top of the run. Bring a build you have actually levelled.",
+    "hpMult": 2.3,
+    "speedMult": 1.3,
+    "rewardMult": 3.4,
+    "tint": "#0a0a1a66",
+    "clearsToUnlock": 4
+  }
+]

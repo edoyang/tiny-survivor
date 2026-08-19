@@ -6,6 +6,8 @@ import { BOSS_NONE, STATUS_DEAD, STATUS_LEVELUP, STATUS_WON } from '../game/kind
 import { createWorld, type World } from '../game/state.ts';
 import { ITEMS, PRESETS } from '../game/systems/items.ts';
 import { applyItemPick } from '../game/systems/leveling.ts';
+import { awardRun, MAPS, startingStars } from '../meta/state.ts';
+import { getMeta, updateMeta } from '../meta/store.ts';
 import { GameCanvas } from '../render/GameCanvas.tsx';
 import { Hud, type HudSnapshot } from '../render/Hud.tsx';
 import { LevelUpOverlay } from '../render/LevelUpOverlay.tsx';
@@ -67,10 +69,18 @@ function parseIndex(value: string | undefined, limit: number, fallback: number):
 }
 
 export default function Game() {
-  const params = useLocalSearchParams<{ classId?: string; presetId?: string }>();
+  const params = useLocalSearchParams<{ classId?: string; presetId?: string; mapId?: string }>();
   const classId = parseIndex(params.classId, classes.length, 1);
   const presetId = parseIndex(params.presetId, PRESETS.length, 0);
-  const [world] = useState(() => createWorld(Date.now() >>> 0, classId, presetId));
+  const mapId = parseIndex(params.mapId, MAPS.length, 0);
+  const map = MAPS[mapId];
+  const [world] = useState(() =>
+    createWorld(Date.now() >>> 0, classId, presetId, {
+      stars: startingStars(getMeta(), presetId),
+      hpMult: map.hpMult,
+      speedMult: map.speedMult,
+    }),
+  );
   const [paused] = useState(() => ({ current: false }));
   const [pausedUi, setPausedUi] = useState(false);
   const [snap, setSnap] = useState(() => takeSnapshot(world));
@@ -97,10 +107,22 @@ export default function Game() {
     if (stars[i] > 0) ownedItems.push(i);
   }
   const runOver = snap.status === STATUS_DEAD || snap.status === STATUS_WON;
+  const [reward, setReward] = useState(0);
+
+  useEffect(() => {
+    if (!runOver) return;
+    setReward((prev) =>
+      prev > 0
+        ? prev
+        : updateMeta((state) =>
+            awardRun(state, snap.seconds, snap.level, mapId, snap.status === STATUS_WON),
+          ),
+    );
+  }, [runOver, snap.seconds, snap.level, snap.status, mapId]);
 
   return (
     <View style={styles.root}>
-      <GameCanvas world={world} paused={paused} />
+      <GameCanvas world={world} paused={paused} floorTint={map.tint} />
       <Hud
         snap={snap}
         paused={pausedUi}
@@ -114,7 +136,6 @@ export default function Game() {
             <Text style={styles.pausedTitle}>PAUSED</Text>
             <View style={styles.pauseRule} />
             <Text style={styles.pausedStat}>LEVEL {snap.level}</Text>
-            <Text style={styles.pausedStat}>{snap.kills} KILLS</Text>
             <View style={styles.pauseActions}>
               <PixelButton label="RESUME" onPress={togglePause} primary />
               <PixelButton label="QUIT TO MENU" onPress={() => router.dismissTo('/')} />
@@ -137,6 +158,8 @@ export default function Game() {
         <ResultsOverlay
           snap={snap}
           won={snap.status === STATUS_WON}
+          mapName={map.name}
+          coins={reward}
           onRetry={() => router.dismissTo('/')}
         />
       )}

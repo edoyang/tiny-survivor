@@ -1,0 +1,7 @@
+[
+  { "id": "gems_small", "name": "Pouch of Gems", "gems": 300, "coins": 0, "priceUsd": "0.99", "currency": "iap" },
+  { "id": "gems_medium", "name": "Chest of Gems", "gems": 1700, "coins": 0, "priceUsd": "4.99", "currency": "iap" },
+  { "id": "gems_large", "name": "Hoard of Gems", "gems": 4000, "coins": 0, "priceUsd": "9.99", "currency": "iap" },
+  { "id": "coins_small", "name": "Coin Sack", "gems": 0, "coins": 2000, "priceGems": 120, "currency": "gems" },
+  { "id": "coins_large", "name": "Coin Vault", "gems": 0, "coins": 9000, "priceGems": 480, "currency": "gems" }
+]

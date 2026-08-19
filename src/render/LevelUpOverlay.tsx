@@ -1,19 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { AWAKENED_STARS, MAX_STARS } from '../game/kinds.ts';
 import { ITEMS } from '../game/systems/items.ts';
+import { GearIcon, StarRow } from './GearIcon.tsx';
 import { Frame } from './PixelUi.tsx';
 import { COLORS, MONO } from './theme.ts';
-
-function StarBar({ owned, color }: { owned: number; color: string }) {
-  const pips = [];
-  for (let i = 0; i < MAX_STARS; i++) {
-    const filled = i < Math.min(owned + 1, MAX_STARS);
-    pips.push(
-      <View key={i} style={[styles.pip, filled ? { backgroundColor: color } : styles.pipEmpty]} />,
-    );
-  }
-  return <View style={styles.pipRow}>{pips}</View>;
-}
 
 export function LevelUpOverlay({
   level,
@@ -57,18 +47,18 @@ export function LevelUpOverlay({
                   </Text>
                 </View>
                 <View style={styles.cardContent}>
-                  <Frame
-                    outline={COLORS.ink}
-                    fill={COLORS.stoneDeep}
-                    sunken
-                    innerStyle={styles.crestPlate}
-                  >
-                    <View style={[styles.crest, { backgroundColor: accent }]} />
-                  </Frame>
+                  <GearIcon
+                    itemIndex={itemIndex}
+                    size={52}
+                    level={owned + 1}
+                    style={styles.crestPlate}
+                  />
                   <Text style={[styles.name, { color: accent }]} numberOfLines={3}>
                     {item.name}
                   </Text>
-                  <StarBar owned={awakening ? MAX_STARS : owned} color={accent} />
+                  <View style={styles.stars}>
+                    <StarRow filled={awakening ? MAX_STARS : owned + 1} size={11} />
+                  </View>
                   <Text style={styles.description} numberOfLines={7}>
                     {awakening ? item.awaken : item.star}
                   </Text>
@@ -109,12 +99,9 @@ const styles = StyleSheet.create({
   banner: { alignSelf: 'stretch', paddingVertical: 3, alignItems: 'center' },
   bannerText: { color: COLORS.ink, fontFamily: MONO, fontSize: 9, fontWeight: 'bold', letterSpacing: 1 },
   cardContent: { flex: 1, alignItems: 'center', paddingHorizontal: 6, paddingVertical: 10 },
-  crestPlate: { padding: 4, marginTop: 12, marginBottom: 8 },
-  crest: { width: 28, height: 28 },
+  crestPlate: { marginTop: 12, marginBottom: 8 },
+  stars: { marginTop: 8, marginBottom: 8 },
   name: { fontFamily: MONO, fontSize: 12, fontWeight: 'bold', textAlign: 'center', letterSpacing: 0.5 },
-  pipRow: { flexDirection: 'row', gap: 3, marginTop: 8, marginBottom: 8 },
-  pip: { width: 8, height: 8 },
-  pipEmpty: { backgroundColor: COLORS.stoneRaised },
   description: { color: COLORS.parchment, fontSize: 11, textAlign: 'center', lineHeight: 15 },
   maxed: { color: COLORS.gold, fontFamily: MONO, fontSize: 9, fontWeight: 'bold', marginTop: 8, letterSpacing: 2 },
 });

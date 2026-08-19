@@ -1,0 +1,14 @@
+{
+  "startingCoins": 800,
+  "startingGems": 1000,
+  "idleCoinsPerMinute": 14,
+  "idleCapMinutes": 480,
+  "gachaSingleCost": 100,
+  "gachaTenCost": 900,
+  "gachaDuplicateCoins": 150,
+  "upgradeCostBase": 140,
+  "upgradeCostPerStar": 200,
+  "runCoinsPerSecond": 1.4,
+  "runCoinsPerLevel": 30,
+  "runCoinsOnWin": 600
+}

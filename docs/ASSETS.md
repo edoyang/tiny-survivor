@@ -3,7 +3,7 @@
 Every fact here was verified by decoding the PNG headers and visually inspecting
 upscaled renders of the files. If a number is not in this file, it is not verified.
 
-## Heroes — `assets/sprites/HERO/`, 16x16, one frame each
+## Heroes - `assets/sprites/HERO/`, 16x16, one frame each
 
 | File | Verified facts |
 |---|---|
@@ -14,7 +14,7 @@ upscaled renders of the files. If a number is not in this file, it is not verifi
 
 No walk cycle exists for any hero. All hero motion must be procedural.
 
-## Equipment — `assets/sprites/Equipment/`, 16x16, one frame each
+## Equipment - `assets/sprites/Equipment/`, 16x16, one frame each
 
 | File | Verified facts |
 |---|---|
@@ -24,7 +24,7 @@ No walk cycle exists for any hero. All hero motion must be procedural.
 
 There is no priest weapon sprite. See BLOCKERS.md.
 
-## Monsters — 24x24, four files per set
+## Monsters - 24x24, four files per set
 
 | Set | Files | Verified facts |
 |---|---|---|
@@ -40,14 +40,14 @@ dead eyes. Frame 3 is NOT part of the walk loop.
 
 All monster sprites have a dark outline plus a white outer border baked in.
 
-## Projectiles — `assets/sprites/Projectile/`
+## Projectiles - `assets/sprites/Projectile/`
 
 | File | Verified facts |
 |---|---|
 | `fireball_strip.png` | 256x32. Exactly 8 frames of 32x32, all non-empty (checked per-frame pixel bounding boxes). The ball faces RIGHT, flame tail trails LEFT. Base orientation of frame art = travelling in +X. |
 | `orb.png` | 100x100. Blue disc with a white ring and white core, drawn content spans (2,2)–(98,98). Not on the 16px grid; scale in code, do not resample the file. |
 
-## Floor tiles — `assets/sprites/T_Dungeon/`, 16x16
+## Floor tiles - `assets/sprites/T_Dungeon/`, 16x16
 
 | File | Verified facts |
 |---|---|
@@ -55,11 +55,11 @@ All monster sprites have a dark outline plus a white outer border baked in.
 | `tile_0048.png` | plain orange floor |
 | `tile_0049.png` | orange floor with light speckles |
 
-## Effect sheets — `assets/effect/`, verified by decoding every PNG
+## Effect sheets - `assets/effect/`, verified by decoding every PNG
 
 180 sheets across `Part 1` … `Part 15`. Layout verified by decoding the PNGs
 and measuring per-cell alpha coverage, per-frame bounding boxes and mean
-colour — not guessed:
+colour - not guessed:
 
 - **Frames are 64x64, laid out left to right.** Frame count = `width / 64`.
   Widths are always a multiple of 64 and vary per sheet (320 … 1472).
@@ -85,7 +85,7 @@ counts below were measured, not assumed:
 | `FX_SLASH` | `Part 8/375.png` | 8 | 7 (red) |
 
 The mapping lives in `src/render/sources.ts` (`EFFECT_SHEETS`). To reskin an
-effect, change the file or the `colourRow` there — nothing else needs editing.
+effect, change the file or the `colourRow` there - nothing else needs editing.
 Frames are cut out of the chosen row and packed into the runtime atlas at boot.
 
 **Not verified:** which *subject* each of the other 173 sheets depicts. They

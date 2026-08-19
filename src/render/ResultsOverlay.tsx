@@ -1,5 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { formatTime, type HudSnapshot } from './Hud.tsx';
+import { UI_ICONS } from './icons.ts';
 import { Frame, PixelButton } from './PixelUi.tsx';
 import { COLORS, MONO } from './theme.ts';
 
@@ -16,10 +17,14 @@ function StatRow({ label, value }: { label: string; value: string }) {
 export function ResultsOverlay({
   snap,
   won,
+  mapName,
+  coins,
   onRetry,
 }: {
   snap: HudSnapshot;
   won: boolean;
+  mapName: string;
+  coins: number;
   onRetry: () => void;
 }) {
   const accent = won ? COLORS.gold : COLORS.blood;
@@ -30,9 +35,13 @@ export function ResultsOverlay({
           <Text style={styles.title}>{won ? 'BOSS DOWN' : 'YOU FELL'}</Text>
         </View>
         <View style={styles.stats}>
+          <StatRow label="MAP" value={mapName.toUpperCase()} />
           <StatRow label="SURVIVED" value={formatTime(snap.seconds)} />
-          <StatRow label="KILLS" value={String(snap.kills)} />
           <StatRow label="LEVEL" value={String(snap.level)} />
+        </View>
+        <View style={styles.rewardRow}>
+          <Image source={UI_ICONS.coin} style={styles.coinIcon} />
+          <Text style={styles.rewardValue}>+{coins}</Text>
         </View>
         <PixelButton label="GO AGAIN" onPress={onRetry} primary labelStyle={styles.retryLabel} />
       </Frame>
@@ -61,5 +70,8 @@ const styles = StyleSheet.create({
   statLabel: { color: COLORS.muted, fontFamily: MONO, fontSize: 12, letterSpacing: 2 },
   statLeader: { flex: 1, height: 2, backgroundColor: COLORS.stoneRaised, marginBottom: 4 },
   statValue: { color: COLORS.parchment, fontFamily: MONO, fontSize: 18, fontWeight: 'bold' },
+  rewardRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 22 },
+  coinIcon: { width: 22, height: 22 },
+  rewardValue: { color: COLORS.gold, fontFamily: MONO, fontSize: 24, fontWeight: 'bold' },
   retryLabel: { fontSize: 16, letterSpacing: 3 },
 });

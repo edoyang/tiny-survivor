@@ -97,6 +97,7 @@ export function createRenderContext(
   screenWidth: number,
   screenHeight: number,
   hero: HeroImages,
+  floorTint: string = tuning.floor.tint,
 ): RenderContext {
   const scale = tuning.render.worldScale;
   const viewWidth = screenWidth / scale;
@@ -166,7 +167,7 @@ export function createRenderContext(
     effectXforms[i] = Skia.RSXform(0, 0, 0, 0);
   }
   const floorTintPaint = Skia.Paint();
-  floorTintPaint.setColor(Skia.Color(tuning.floor.tint));
+  floorTintPaint.setColor(Skia.Color(floorTint));
   const vignettePaint = Skia.Paint();
   vignettePaint.setShader(
     Skia.Shader.MakeRadialGradient(

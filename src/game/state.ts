@@ -241,6 +241,12 @@ export const MINION_CAP = 8;
 export const PLAYER_RADIUS = 6;
 export const SPATIAL_CELL_SIZE = 32;
 
+export type RunSetup = {
+  stars?: Record<string, number>;
+  hpMult?: number;
+  speedMult?: number;
+};
+
 export type World = {
   seed: number;
   rng: Rng;
@@ -273,6 +279,8 @@ export type World = {
   xpToNext: number;
   status: number;
   presetId: number;
+  mapHpMult: number;
+  mapSpeedMult: number;
   itemStars: Int32Array;
   itemOffer: Int32Array;
   reviveUsed: boolean;
@@ -513,6 +521,7 @@ export function createWorld(
   seed: number,
   classId: number = CLASS_KNIGHT,
   presetId: number = 0,
+  setup: RunSetup = {},
 ): World {
   const world: World = {
     seed,
@@ -546,11 +555,19 @@ export function createWorld(
     xpToNext: tuning.leveling.baseXpToLevel,
     status: STATUS_RUNNING,
     presetId,
+    mapHpMult: setup.hpMult ?? 1,
+    mapSpeedMult: setup.speedMult ?? 1,
     itemStars: new Int32Array(items.length),
     itemOffer: new Int32Array(ITEM_OFFER_SLOTS).fill(-1),
     reviveUsed: false,
     recastQueued: 0,
   };
+  if (setup.stars !== undefined) {
+    for (let i = 0; i < items.length; i++) {
+      const stars = setup.stars[items[i].id];
+      if (stars !== undefined && stars > 0) world.itemStars[i] = stars;
+    }
+  }
   recomputePlayer(world);
   world.player.hp = world.player.maxHp;
   return world;

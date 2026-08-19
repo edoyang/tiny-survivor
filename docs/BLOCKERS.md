@@ -25,7 +25,7 @@ Missing assets, unfixable failures, anything shipped disabled.
   seven are wired in, chosen by measured motion and size (see ASSETS.md), not
   by seeing what they depict. If `FX_BOLT` does not read as lightning or
   `FX_SLASH` does not read as a slash, swap the file in
-  `src/render/sources.ts` — the rest of the code does not care.
+  `src/render/sources.ts` - the rest of the code does not care.
 - **No dedicated sprite for icicles, shards or bombs.** Icicles and shards
   reuse the drawn missile bolt; bombs reuse the fireball strip. They are
   distinguishable by their impact effect, not by their in-flight sprite.
@@ -47,7 +47,7 @@ Missing assets, unfixable failures, anything shipped disabled.
 ## UI art direction pass
 
 - **No pixel font.** The interface uses the platform monospace face
-  (`MONO` in `src/render/theme.ts`) because no font file could be fetched —
+  (`MONO` in `src/render/theme.ts`) because no font file could be fetched -
   this environment's egress proxy blocks font and asset hosts. A real bitmap
   face (m5x7, Press Start 2P or similar) dropped into `assets/fonts/` and
   loaded with `expo-font` would finish the look; only `MONO` has to change.
@@ -58,3 +58,23 @@ Missing assets, unfixable failures, anything shipped disabled.
 - **Items still have no icons**, so the level-up card crest and the HUD gear
   chips are coloured blocks. This is the single biggest remaining gap: a build
   is currently identified by colour and name only.
+
+## Meta shell
+
+- **Progress only persists in a browser.** `src/meta/storage.ts` writes to
+  `localStorage` when it exists, which covers the web build the owner tests on.
+  On a phone there is no storage module installed (no AsyncStorage, no
+  expo-sqlite, no expo-file-system), so coins, gear and summons reset when the
+  app restarts. Fixing it means adding one dependency, which was not done
+  without being asked. `expo-sqlite` is the Expo-recommended option and only
+  `loadRaw`/`saveRaw` have to change.
+- **In-app purchases are not connected.** The three gem packs in the shop are
+  priced placeholders; tapping one says payments are not connected. A real
+  build needs an IAP module plus store configuration, which is account work,
+  not code work.
+- **Summon has no rarity, no pity and no animation.** It resolves instantly
+  into a grid of results.
+- **Item icons are vector silhouettes, not pixel art.** They read clearly at
+  30px in the HUD but they do not match the 16x16 sprite style. Replacing them
+  means drawing 75 pixel icons; the file names in
+  `assets/ui/icons/sources.json` say exactly what each one has to depict.

@@ -135,7 +135,7 @@ Every place one reading of the spec was picked over another.
 - **When the gem pool (512) is full, new XP is credited directly to the player**
   instead of being dropped or merged. No XP is ever lost; the only cost is a
   missing visual gem in an already extremely dense scene.
-- **Skia installed as `@shopify/react-native-skia@2.6.2`** — the exact version pinned
+- **Skia installed as `@shopify/react-native-skia@2.6.2`** - the exact version pinned
   in Expo SDK 57's `bundledNativeModules.json`. `npx expo install` could not reach
   Expo's API from this environment, so the pin was read from the installed `expo`
   package instead.
@@ -145,7 +145,7 @@ Every place one reading of the spec was picked over another.
 - **An effect sprite is sized from the damage radius it represents**, not from
   a fixed art scale. `spawnEffect` takes world-space radius and the renderer
   draws `radius * 2 * effectRadiusMult / 64`. Area upgrades therefore change
-  the picture as well as the numbers, which was the point of the complaint —
+  the picture as well as the numbers, which was the point of the complaint -
   "it says increasing blast size but the visual should be bigger as well".
 - **Effects with no area of their own get a radius from tuning** rather than
   an invented scale: single-target impacts use `render.hitEffectRadius`,
@@ -161,7 +161,7 @@ Every place one reading of the spec was picked over another.
   layout.** Every surface is a bevelled frame: a 2 px ink outline, then a 2 px
   border with a light top/left and a dark bottom/right (`Frame` in
   `src/render/PixelUi.tsx`), which is the flat-shaded stand-in for a 9-slice
-  panel. Zero border radius anywhere — rounded corners on a 16 px pixel-art
+  panel. Zero border radius anywhere - rounded corners on a 16 px pixel-art
   game read as an app, not a game.
 - **Chrome type is monospace, uppercase, letter-spaced; prose stays in the
   system face.** No pixel font file could be fetched (see BLOCKERS), and
@@ -181,7 +181,7 @@ Every place one reading of the spec was picked over another.
   *world* looks like (floor tint, vignette) did go into `tuning.json`.
 - **Class cards show HP/SPD/RTE pips derived from `classes.json`** (maxHp,
   moveSpeed, 1/cooldown, each normalised across the four classes). Nothing is
-  invented — if the JSON changes the pips change.
+  invented - if the JSON changes the pips change.
 - **Level-up cards are anchored to the bottom of the screen.** They are the one
   overlay you must hit under pressure, and the bottom third is the reachable
   zone in one-thumb portrait play.
@@ -194,4 +194,51 @@ Every place one reading of the spec was picked over another.
 - **The floor tile weights were a bug, not a taste call.** `tile_0048` is a
   single flat colour (all 256 pixels `#eaa56c`, verified by decoding the PNG)
   and it was weighted 0.99, so the "endless dungeon" rendered as a plain orange
-  field. `tile_0049` — the same base with sparse specks — is now half the mix.
+  field. `tile_0049` - the same base with sparse specks - is now half the mix.
+
+## Meta shell (owner feedback round 2)
+
+- **Gear is identified by an icon, never by a coloured block.** All 75 items and
+  13 interface icons are rendered from game-icons.net SVGs into
+  `assets/ui/icons/`, recoloured to parchment and rasterised at 96x96. The icon
+  each item uses is recorded in `assets/ui/icons/sources.json`, and the CC BY
+  attribution the game owes is in `assets/ui/icons/ATTRIBUTION.md`. They are
+  clean vector silhouettes rather than hand-drawn pixel art, which is a
+  deliberate mismatch with the 16x16 sprites: 75 legible pixel icons is an art
+  job, and a wrong-but-clear icon beats a coloured square.
+- **The star rating is the star icon, not an asterisk.** `StarRow` in
+  `src/render/GearIcon.tsx` draws filled and empty stars everywhere a level is
+  shown.
+- **Level sits in the bottom-right corner of the icon**, on a chip in the item
+  rarity colour, gold with the letter A once the piece is awakened. One
+  component (`GearIcon`) does this on every screen: HUD, level-up cards, build
+  preview, hero loadout, inventory, summon results.
+- **Kill count is gone from the interface.** It is still counted in the
+  simulation and still drives nothing; the HUD, pause panel and results screen
+  no longer show it.
+- **Gearing is per build, not per class.** A run can hold
+  `tuning.items.totalSlots` (5) pieces, and a build has 6 signature items plus 3
+  general ones, so the hero screen asks you to pick 5 of 9. Equipped pieces
+  enter the run at the star level you own, and level-up cards raise them from
+  there. This keeps the existing preset and offer rules intact instead of
+  inventing a second gear system beside them.
+- **Summon odds are uniform across all 75 items.** No rarity tiers exist in
+  `items.json`, so inventing weights would have been invented balance. A
+  duplicate adds a star; a duplicate of an awakened piece pays coins.
+- **Meta state is a fourth layer.** `src/meta/` is plain TypeScript with no
+  React and no rendering, the same rule `src/game/` follows, and it depends on
+  `src/game/` only for item data and the seeded RNG. The dependency arrow is
+  now app to meta to game, and app to render to game.
+- **The run reads the meta store once, at creation.** `createWorld` takes an
+  optional setup object with starting stars and the map multipliers. The
+  simulation still knows nothing about coins, gacha or storage.
+- **Navigation is a six-slot bottom bar** (home, hero, bag, battle, summon,
+  shop) present on every meta screen. Battle is outlined in gold rather than
+  filled, because a parchment icon on a gold plate loses contrast.
+- **Idle rewards sit on the home screen**, not inside battle, per the request.
+  Coins accrue per minute up to a cap and are claimed with one button.
+- **Maps change the run, not just the label.** Each map carries enemy HP and
+  speed multipliers, a coin reward multiplier and a floor tint, and the tint is
+  passed to the renderer so the five maps do not all look the same.
+- **Prose uses hyphens, never em dashes**, in code, documents and commits, per
+  the owner's instruction.

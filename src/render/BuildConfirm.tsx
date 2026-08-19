@@ -1,8 +1,8 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import classes from '../game/data/classes.json' with { type: 'json' };
-import { MAX_STARS } from '../game/kinds.ts';
 import { ITEMS, PRESETS } from '../game/systems/items.ts';
+import { GearIcon, StarRow } from './GearIcon.tsx';
 import { MenuSprite } from './MenuSprite.tsx';
 import { Frame, PixelButton } from './PixelUi.tsx';
 import { HERO_IMAGES, WEAPON_IMAGES } from './sources.ts';
@@ -52,7 +52,7 @@ export function BuildConfirm({
 
         <Text style={styles.blurb}>{preset.blurb}</Text>
 
-        <Text style={styles.listHeading}>SIGNATURE GEAR — {exclusive.length} ITEMS</Text>
+        <Text style={styles.listHeading}>SIGNATURE GEAR / {exclusive.length} ITEMS</Text>
         <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
           {exclusive.map((itemIndex) => {
             const item = ITEMS[itemIndex];
@@ -64,15 +64,13 @@ export function BuildConfirm({
                 sunken
                 innerStyle={styles.itemBody}
               >
-                <View style={[styles.itemBand, { backgroundColor: item.color }]} />
+                <GearIcon itemIndex={itemIndex} size={44} level={0} />
                 <View style={styles.itemText}>
                   <Text style={[styles.itemName, { color: item.color }]}>{item.name}</Text>
-                  <Text style={styles.itemStar}>
-                    <Text style={[styles.itemStarPips, { color: item.color }]}>
-                      {'*'.repeat(MAX_STARS)}
-                    </Text>{' '}
-                    {item.star}
-                  </Text>
+                  <View style={styles.itemStarRow}>
+                    <StarRow filled={0} size={9} />
+                    <Text style={styles.itemStar}>{item.star}</Text>
+                  </View>
                   <View style={styles.awakenRow}>
                     <View style={styles.awakenTag}>
                       <Text style={styles.awakenTagText}>AWAKEN</Text>
@@ -140,11 +138,10 @@ const styles = StyleSheet.create({
   list: { flex: 1, minHeight: 0, marginBottom: 12 },
   listContent: { gap: 6, paddingBottom: 2 },
   itemBody: { flexDirection: 'row', padding: 8, gap: 8 },
-  itemBand: { width: 4, alignSelf: 'stretch' },
   itemText: { flex: 1 },
   itemName: { fontFamily: MONO, fontSize: 13, fontWeight: 'bold', letterSpacing: 1 },
-  itemStar: { color: COLORS.parchment, fontSize: 11, lineHeight: 15, marginTop: 2 },
-  itemStarPips: { fontFamily: MONO, fontSize: 11 },
+  itemStarRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 3 },
+  itemStar: { flex: 1, color: COLORS.parchment, fontSize: 11, lineHeight: 15 },
   awakenRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginTop: 4 },
   awakenTag: { backgroundColor: COLORS.goldDeep, paddingHorizontal: 4, paddingVertical: 1 },
   awakenTagText: { color: COLORS.gold, fontFamily: MONO, fontSize: 9, letterSpacing: 1 },

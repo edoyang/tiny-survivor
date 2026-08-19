@@ -118,9 +118,9 @@ function spawnAt(
     enemy = spawnEnemy(world, stats, x, y, phase);
     if (enemy === null) return null;
   }
-  enemy.hp = Math.round(stats.hp * hpScale * hpMult);
+  enemy.hp = Math.round(stats.hp * hpScale * hpMult * world.mapHpMult);
   enemy.maxHp = enemy.hp;
-  enemy.speed = stats.speed * speedScale * speedMult;
+  enemy.speed = stats.speed * speedScale * speedMult * world.mapSpeedMult;
   enemy.contactDamage = stats.damage * damageMult;
   enemy.xp = stats.xp * xpMult;
   enemy.scale = scale;

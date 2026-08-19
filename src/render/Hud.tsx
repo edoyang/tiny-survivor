@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AWAKENED_STARS, BOSS_FINAL } from '../game/kinds.ts';
-import { ITEMS } from '../game/systems/items.ts';
+import { BOSS_FINAL } from '../game/kinds.ts';
+import { GearIcon } from './GearIcon.tsx';
 import { Frame, SegmentBar } from './PixelUi.tsx';
 import { COLORS, MONO } from './theme.ts';
 
@@ -101,9 +101,6 @@ export function Hud({
             <Frame outline={COLORS.ink} fill={COLORS.stoneDeep} sunken innerStyle={styles.clockPlate}>
               <Text style={styles.clockText}>{formatTime(snap.seconds)}</Text>
             </Frame>
-            <Frame outline={COLORS.ink} fill={COLORS.stoneDeep} sunken innerStyle={styles.killPlate}>
-              <Text style={styles.killText}>{snap.kills} KILLS</Text>
-            </Frame>
           </View>
 
           {snap.bossMaxHp > 0 && (
@@ -122,22 +119,9 @@ export function Hud({
           )}
 
           <View style={styles.gearRow} pointerEvents="none">
-            {ownedItems.map((itemIndex) => {
-              const item = ITEMS[itemIndex];
-              const owned = stars[itemIndex];
-              return (
-                <Frame
-                  key={item.id}
-                  outline={item.color}
-                  fill={COLORS.stoneDeep}
-                  innerStyle={styles.gearChip}
-                >
-                  <Text style={[styles.gearStars, { color: item.color }]}>
-                    {owned >= AWAKENED_STARS ? 'A' : owned}
-                  </Text>
-                </Frame>
-              );
-            })}
+            {ownedItems.map((itemIndex) => (
+              <GearIcon key={itemIndex} itemIndex={itemIndex} size={30} level={stars[itemIndex]} />
+            ))}
           </View>
         </View>
       </View>
@@ -183,8 +167,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     letterSpacing: 2,
   },
-  killPlate: { paddingHorizontal: 8, paddingVertical: 4 },
-  killText: { color: COLORS.muted, fontFamily: MONO, fontSize: 11, letterSpacing: 1 },
   bossBlock: { marginTop: 8 },
   bossLabel: {
     color: COLORS.blood,
@@ -195,8 +177,6 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   gearRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 8 },
-  gearChip: { width: 18, height: 18, alignItems: 'center', justifyContent: 'center' },
-  gearStars: { fontFamily: MONO, fontSize: 10, fontWeight: 'bold' },
   vignetteOuter: {
     position: 'absolute',
     top: 0,

@@ -16,7 +16,7 @@ One line per idea. Nothing here is scheduled.
   identified by a coloured dot and a name.
 - A build-preview screen showing all six items and their awakenings before a
   run starts, instead of the six names on the preset card.
-- Damage-over-time and slow indicators on enemies (tint or icon) — burn and
+- Damage-over-time and slow indicators on enemies (tint or icon) - burn and
   slow are currently invisible.
 - Persist "Skip confirmation" (and any future settings) across restarts.
 - Silence the `SkPath.moveTo/lineTo/close` deprecation warnings by moving
@@ -29,3 +29,9 @@ One line per idea. Nothing here is scheduled.
   already carries the star array.
 - A "how to play" first-run card (movement, auto-attack, gem pickup) instead of
   the one-line hint on the class select screen.
+- Rarity tiers on gear, so summon odds and the gacha banner can mean something.
+- A pity counter and a summon animation.
+- Daily login and quest rewards, which the idle panel is already shaped for.
+- Hero levels or ascension, so coins have a second sink besides gear upgrades.
+- Map-specific enemy sets, not just HP and speed multipliers on the same waves.
+- A credits screen carrying the game-icons.net attribution the licence needs.

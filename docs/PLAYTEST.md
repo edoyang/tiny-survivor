@@ -1,6 +1,6 @@
 # PLAYTEST.md
 
-## HANDOVER — read this first
+## HANDOVER - read this first
 
 ### How to run it
 
@@ -47,19 +47,19 @@ seen moving.
 - **Frame rate on device is unmeasured.** The sim itself costs ~8 us per
   60 Hz tick in Node on this machine with ~190 live enemies
   (`node --expose-gc scripts/bench-sim.ts` to re-run), which leaves the whole
-  frame budget for rendering — but Hermes and the GPU were never profiled.
+  frame budget for rendering - but Hermes and the GPU were never profiled.
   The renderer draws everything in 4 drawAtlas batches + 2 hero sprites +
   2 joystick circles per frame, with off-view entities culled, so batching
   is structurally right; whether it holds 60 fps at the 200-enemy cap on
   your phone is unknown. If it stutters, lower `concurrentCap` in
   `waves.json` first.
-- **Allocation in the hot loop**: verified in Node — retained heap is flat
+- **Allocation in the hot loop**: verified in Node - retained heap is flat
   over 6000-tick runs at enemy cap; the V8 allocation profiler samples only
   transient boxed-number noise (~20 B/tick), no objects. Hermes was not
   profiled.
 - **The renderer records one SkPicture per frame** (unavoidable garbage of
   the picture-per-frame pattern, outside the sim). If device profiling shows
-  GC hitches, the fix is moving to Skia buffers/worklets — noted in
+  GC hitches, the fix is moving to Skia buffers/worklets - noted in
   BACKLOG.md, not done.
 
 ### Decisions where I picked one reading (full list in DECISIONS.md)
@@ -69,14 +69,14 @@ seen moving.
   visually, so walk cycles are 3 frames, not 4).
 - Knight's sword stops homing after it hits its acquired target, then flies
   straight while piercing.
-- Knight weapon literally reappears only when the next attack is ready — in
+- Knight weapon literally reappears only when the next attack is ready - in
   combat that means his hand is usually empty; if that looks wrong in play,
   say so and it becomes "reappear after the volley's last sword despawns".
 - Bosses are always the big blue `monster` sprite: mini at 2.2x (10:00),
   final at 3x (15:00).
 - At the 200-enemy cap, the farthest enemy is recycled to the spawn ring;
   bosses are never recycled.
-- Levelling still exists — the three cards now hand out gear stars instead of
+- Levelling still exists - the three cards now hand out gear stars instead of
   generic upgrades. Six items per build, hold five, plus three general slots.
 - The run does not stop at 15:00; the boss spawns, everything else stops, and
   killing it wins.
@@ -87,11 +87,11 @@ seen moving.
 
 ### Unresolved blockers (full list in BLOCKERS.md)
 
-- No priest staff sprite — priest carries a gold-tinted wand.
-- No XP gem sprite — gems are a drawn 6 px diamond.
-- No magic missile sprite — missiles are a drawn 6 px bolt, and icicles and
+- No priest staff sprite - priest carries a gold-tinted wand.
+- No XP gem sprite - gems are a drawn 6 px diamond.
+- No magic missile sprite - missiles are a drawn 6 px bolt, and icicles and
   shards reuse it.
-- No minion sprite — familiars, spirits and ballistae are all a small orb.
+- No minion sprite - familiars, spirits and ballistae are all a small orb.
 - The other 173 effect sheets were classified by measurement, never looked at
   as pictures; the seven in use may not depict what their names claim.
 - docs.expo.dev was unreachable from the build environment; Expo usage was
@@ -137,7 +137,7 @@ These two numbers are locked together and a test now enforces it.
   the nearest crisp value and 1 is the next zoom-out step (sprites get very
   small).
 
-## Phase 2 — camera, view, joystick
+## Phase 2 - camera, view, joystick
 
 All guessed, none playtested:
 
@@ -151,13 +151,13 @@ All guessed, none playtested:
 - Player move speed now comes from `data/classes.json` per class
   (`moveSpeed`: wizard 70, knight 75, dwarf 72, priest 68). All guessed.
 
-## Phase 3 — hero rig (retuned post-Phase 8 on owner feedback)
+## Phase 3 - hero rig (retuned post-Phase 8 on owner feedback)
 
 All keys in `tuning.json` `heroRig`.
 
 - **Idle is now completely still**: `idleBobHeight` = 0 and
   `weaponIdleSwingDeg` = 0. The hero does not move at all when standing.
-  `idleBobHz` = 1.5 is still there and does nothing until a height is set —
+  `idleBobHz` = 1.5 is still there and does nothing until a height is set -
   put `idleBobHeight` back to 2 if a gentle breathing bob is wanted.
 - **Walking was softened**: `walkBobHeight` 3 -> 1.5, `walkBobHz` 4 -> 3,
   `walkSquashAmount` 0.06 -> 0.025, `weaponWalkSwingDeg` 6 -> 3. If it now
@@ -166,25 +166,25 @@ All keys in `tuning.json` `heroRig`.
   banner (NEW / STAR n / AWAKEN), a crest, the item name, five star pips
   filled to what the pick would give you, and the effect text. Cards are
   `minHeight` 260 and flex to the screen width, so three across is the design
-  limit — a fourth offer slot would need a rethink.
+  limit - a fourth offer slot would need a rethink.
 - **Menu cards fill the screen height** (four flex cards, no scrolling) with
   an 80 px hero and 40 px weapon icon. Picking a build opens a panel listing
-  that build's six exclusive items — star effect and awakening for each — with
+  that build's six exclusive items - star effect and awakening for each - with
   an X to back out and "LET'S GO TO BATTLE" to start. The three shared items
   are not repeated there; they are the same in every build.
 - **"Skip confirmation" sits at the bottom of the hero screen**, not inside
   the panel, so it can be set before ever opening one. It lives in memory only
-  (`src/render/skipConfirm.ts`) and resets when the app restarts — persisting
+  (`src/render/skipConfirm.ts`) and resets when the app restarts - persisting
   it needs a storage dependency, which was not added without being asked.
 - **The attack swing was not touched** and still fires while standing still:
   `attackSwingDeg` = 50 over `attackOutSeconds` 0.06 then an eased return over
   `attackReturnSeconds` 0.25. It is the only hero motion left when idle, which
-  is the point — it has to read clearly now that nothing else moves.
+  is the point - it has to read clearly now that nothing else moves.
 - **Weapon grip/pivot**: `weaponGripOffsetX` 6, `weaponGripOffsetY` 3,
   `weaponPivotX` 8, `weaponPivotY` 13. These place the weapon in the hand;
   they are eyeballed against 16x16 sprites and were never checked per class.
 
-## Phase 4 — enemies and pickups
+## Phase 4 - enemies and pickups
 
 - **Monster stats** in `data/monsters.json` are all guesses: slime 10hp/22spd/4dmg,
   fly 6/34/3, bunny 14/28/5, monster 30/18/8, xp 1/1/2/3. If early minutes feel
@@ -200,7 +200,7 @@ All keys in `tuning.json` `heroRig`.
 - **`pickup.gemColor`** = #5ee9a0 (there is no gem sprite in the pack; gems are
   a 6 px drawn diamond, see BLOCKERS).
 
-## Gear, builds and the 15-minute run (post-Phase 8) — every number guessed
+## Gear, builds and the 15-minute run (post-Phase 8) - every number guessed
 
 Nothing in this section has been played. It is the part of the game most
 likely to need retuning, and every number is one JSON edit away.
@@ -210,7 +210,7 @@ likely to need retuning, and every number is one JSON edit away.
 - **15:00 is the finale, not a stop.** Packs, hordes and elites all stop the
   moment the boss spawns at `boss.atSeconds` = 900. Killing the boss shows
   "BOSS DOWN"; dying shows "YOU FELL". If the boss is a slog, drop
-  `boss.hpMult` (260) first — with a five-item build I have no idea whether it
+  `boss.hpMult` (260) first - with a five-item build I have no idea whether it
   takes 30 seconds or five minutes.
 - **Mini boss at 10:00** (`miniBoss.hpMult` = 90). Meant as a difficulty
   check, not a wall.
@@ -236,7 +236,7 @@ many arrive together). Enemies never spawn alone.
 
 - To make a window harder or easier: change that row's `packSize` first,
   `intervalSeconds` second, `hpScale` last.
-- **Hordes** at 5:00, 8:00, 11:00, 14:00 — 60 / 80 / 100 / 120 enemies
+- **Hordes** at 5:00, 8:00, 11:00, 14:00 - 60 / 80 / 100 / 120 enemies
   spawned evenly around the full circle in a single tick. This is the "cut
   your way out or run" moment. If a horde is unsurvivable rather than tense,
   drop `count` before touching anything else. If it lands on top of a pack
@@ -249,13 +249,13 @@ many arrive together). Enemies never spawn alone.
 ### Builds and items (`data/items.json`, `data/presets.json`)
 
 - **Twelve builds, three per class.** A run can choose from that build's six
-  exclusive items plus the three general ones — nine candidates — and holds
+  exclusive items plus the three general ones - nine candidates - and holds
   **five in total** (`tuning.json` `items.totalSlots`). Exclusive and general
   share the one pool, so taking all three general items leaves room for only
   two build items. Four of the nine always get left behind.
 - **Star scaling is linear.** An item's `stats` block is added once per star,
   so a five-star Staff of Cinders is +70% damage. If the fifth star feels
-  like nothing, the fix is a curve, not bigger numbers — say so and it
+  like nothing, the fix is a curve, not bigger numbers - say so and it
   becomes one.
 - **Awakening is the sixth pick.** `awakenStats`, `awakenFlags` and
   `awakenAbility` all land at once. These are the moments the build is
@@ -284,50 +284,50 @@ many arrive together). Enemies never spawn alone.
   Arcane widens the sprite exactly as much as it widens the damage. Before
   this, effects were drawn at a fixed 0.42 scale and a meteor's art covered
   under half its blast, which is why nothing read on screen.
-- `effectRadiusMult` = 1.15 — how far the art overshoots the damage circle.
+- `effectRadiusMult` = 1.15 - how far the art overshoots the damage circle.
   1.0 draws the hitbox honestly; higher looks punchier and lies slightly.
-- `effectSeconds` = 0.6 — how long a one-shot burst plays for, spread across
+- `effectSeconds` = 0.6 - how long a one-shot burst plays for, spread across
   whatever frame count that sheet has (5 to 14).
-- `hitEffectRadius` = 11 / `castEffectRadius` = 24 — the size used by effects
+- `hitEffectRadius` = 11 / `castEffectRadius` = 24 - the size used by effects
   that have no area of their own: single-target icicle impacts, riposte
   slashes, heals and volley bursts.
-- `effectFps` = 18, `fieldFps` = 12 — playback speed of bursts and of
+- `effectFps` = 18, `fieldFps` = 12 - playback speed of bursts and of
   persistent fields.
 - Persistent fields (auras, storms, trails, the nova ring) scale their sprite
   to the field's actual radius too, so they always show their true reach.
 
 ### Other new feel keys (`tuning.json` → `items` / `abilities`)
 
-- `invulnPulseSeconds` 10 / `invulnPulseDurationSeconds` 3 — Athena Helm's
+- `invulnPulseSeconds` 10 / `invulnPulseDurationSeconds` 3 - Athena Helm's
   awakened invincibility beat, taken from the brief.
-- `lifestealFraction` 0.3 — Potion of Vigour heals 30% of damage taken, after
+- `lifestealFraction` 0.3 - Potion of Vigour heals 30% of damage taken, after
   the hit lands, so lethal damage still kills.
-- `recastOnKillChance` 0.3 — as specified.
-- `shatterCount` 3 / `shatterDamageMult` 0.5 / `shatterSpreadDeg` 40 — Robe of
+- `recastOnKillChance` 0.3 - as specified.
+- `shatterCount` 3 / `shatterDamageMult` 0.5 / `shatterSpreadDeg` 40 - Robe of
   Magi's shards.
-- `pierceBurstRadius` 42 / `pierceBurstDamageMult` 2 — Sentinel Plate.
-- `blinkDistance` 26 — Treads of Ether's escape hop. Likely the twitchiest
+- `pierceBurstRadius` 42 / `pierceBurstDamageMult` 2 - Sentinel Plate.
+- `blinkDistance` 26 - Treads of Ether's escape hop. Likely the twitchiest
   number in the game.
 - `freezeShatterRadius` 34 / `freezeShatterDamage` 26, `burnSpreadRadius` 40,
   `gemBlastRadius` 30 / `gemBlastDamage` 14.
-- `abilities.pullStrength` 70 — how hard rifts and hooks drag. Too high and
+- `abilities.pullStrength` 70 - how hard rifts and hooks drag. Too high and
   the crowd teleports.
 - `abilities.minionOrbitRadius` 26 / `minionOrbitDegPerSec` 60 /
   `minionShotSeconds` 1.5 / `minionRange` 220.
-- `abilities.fieldDamageIntervalSeconds` 0.5 — how often every damage field
+- `abilities.fieldDamageIntervalSeconds` 0.5 - how often every damage field
   ticks. Changing this rescales every field item at once.
 
-## Phase 7 — progression
+## Phase 7 - progression
 
 - **XP curve**: `tuning.json` `leveling.baseXpToLevel` = 6,
   `leveling.xpGrowthPerLevel` = 4 (level N needs 6 + 4(N-1) xp). With slime
   xp 1, that is roughly a level every 15-20 early kills. If level-ups feel
   rare in minute one, drop base to 5; if they spam, raise growth to 6.
-- **Item balance** now lives in `data/items.json` — see the gear section below.
+- **Item balance** now lives in `data/items.json` - see the gear section below.
 - HUD refreshes at ~7 Hz from a snapshot diff, not per frame. If bars feel
   laggy, the interval is in `src/app/game.tsx` (150 ms).
 
-## Phase 6 — class weapons (all in `data/weapons.json` unless noted)
+## Phase 6 - class weapons (all in `data/weapons.json` unless noted)
 
 Every number is a guess. Honest strength ranking guess, unverified by play:
 **wizard > knight > dwarf > priest**. The wizard one-shots early slimes with
@@ -347,12 +347,12 @@ raise `orb.damage` to 8 or shorten `missile`'s class cooldown in
 - **Volley stagger**: `volley.staggerSeconds` = 0.12 between shots.
 - **Acquire range**: `acquireRange` = 280 (roughly one screen height at
   scale 3). Heroes hold fire with nothing in range.
-- Projectile looks: `tuning.json` `projectiles.*` — fireball drawn at 0.75
+- Projectile looks: `tuning.json` `projectiles.*` - fireball drawn at 0.75
   scale (32 px art next to 16 px heroes), orb at 0.2 (100 px art), axe spins
   at 540 deg/s visually. The missile is a drawn 6 px bolt, colour
   `projectiles.missileColor`.
 
-## UI art direction pass — numbers to retune
+## UI art direction pass - numbers to retune
 
 Chrome tokens (`src/render/theme.ts`): palette, `BEVEL` (2 px border width),
 `CLASS_COLORS`. Changing `COLORS.gold` restyles every primary action at once.
@@ -364,17 +364,43 @@ World-look numbers, all in `src/game/data/tuning.json` under `floor`:
   with sparse specks, `tile_0042` is the decorative crate/brick tile and reads
   as scattered light-blue debris. Raise index 0 for more props, lower it if the
   blue blocks look like litter.
-- **`floor.tint` = `#1b0f2e55`** — a translucent purple-black drawn over the
+- **`floor.tint` = `#1b0f2e55`** - a translucent purple-black drawn over the
   floor only, so entities keep full brightness. Raise the alpha (last two hex
   digits) for a darker dungeon; `00` disables it.
-- **`floor.vignette` = `#07060cc4`, `floor.vignetteRadius` = `0.78`** — a
+- **`floor.vignette` = `#07060cc4`, `floor.vignetteRadius` = `0.78`** - a
   radial darkening from the screen centre. Lower the alpha or raise the radius
   if the edges feel too closed in.
 - **Low-HP warning frame** triggers under 34% HP (`LOW_HP_RATIO` in
-  `src/render/Hud.tsx`). It is a red screen border, not a soft vignette —
+  `src/render/Hud.tsx`). It is a red screen border, not a soft vignette -
   React Native has no gradient without a dependency.
 
 Unverified, as always: this was checked in a desktop browser at a 390x844
 viewport, never on a phone. Touch target sizes follow the 44 dp minimum
 (`PixelButton` sets `minHeight: 44`), but thumb reach and how the level-up
 cards feel mid-fight are your call.
+
+## Meta economy numbers to retune
+
+All in `src/meta/data/meta.json` unless noted. Every one is a guess; none of it
+has been played for more than a few minutes in a browser.
+
+- **`startingCoins` 800, `startingGems` 1000.** The gem figure exists so a new
+  player can afford one 10-summon (900) immediately. Lower it if the first
+  session should feel tighter.
+- **`idleCoinsPerMinute` 14, `idleCapMinutes` 480.** A full 8 hour store is
+  6720 coins, roughly 12 gear upgrades at the base price. Raise the rate if
+  coming back after a night should mean more than that.
+- **`gachaSingleCost` 100, `gachaTenCost` 900** gems. There is no pity system
+  and no rarity, so a 10-summon is simply ten uniform draws.
+- **`gachaDuplicateCoins` 150** for a duplicate of an awakened piece.
+- **`upgradeCostBase` 140, `upgradeCostPerStar` 200.** Star 1 to 2 costs 140,
+  star 5 to awakened costs 940.
+- **`runCoinsPerSecond` 1.4, `runCoinsPerLevel` 30, `runCoinsOnWin` 600.** A
+  ten minute run at level 15 on the first map pays about 1290 coins.
+- **Map difficulty and reward** live in `src/meta/data/maps.json`: `hpMult`,
+  `speedMult`, `rewardMult`, `tint`, `clearsToUnlock`. Black Spire at 2.3x
+  enemy HP for 3.4x coins is a guess at where the curve should end, and the
+  only way to know is to play it.
+- **Shop products** are in `src/meta/data/shop.json`. The three gem packs are
+  real-money placeholders and do nothing when tapped; the two coin packs spend
+  gems and work.

@@ -7,7 +7,7 @@ automatically.
 ## Running it
 
 The game targets phones first (Android/iOS, portrait, one thumb). The renderer
-uses `@shopify/react-native-skia`, which is **not available in Expo Go** — use a
+uses `@shopify/react-native-skia`, which is **not available in Expo Go** - use a
 development build:
 
 ```bash
@@ -29,7 +29,7 @@ npm run web
 
 `npm install` copies `canvaskit.wasm` into `public/` (postinstall). In the
 browser you can play with the mouse (drag = joystick) or the keyboard:
-WASD / arrow keys to move. The browser build exists for testing — the phone
+WASD / arrow keys to move. The browser build exists for testing - the phone
 is the real target, and feel judgements should be made there.
 
 ## Testing
@@ -46,14 +46,14 @@ node --expose-gc scripts/bench-sim.ts
 The last command benchmarks the simulation at the enemy cap and reports
 per-tick cost and heap growth.
 
-Start with `docs/PLAYTEST.md` — the handover section at the top explains what
+Start with `docs/PLAYTEST.md` - the handover section at the top explains what
 was verified, what was guessed, and which JSON key tunes each guess.
 
 ## Layout
 
-- `src/game/` — the whole simulation: plain data and plain functions, fixed 60 Hz step
-- `src/render/` — Skia drawing, reads world state
-- `src/app/` — expo-router screens
-- `assets/sprites/` — all sprite art
-- `docs/` — ASSETS.md (verified asset facts), PLAYTEST.md (tuning punch-list),
+- `src/game/` - the whole simulation: plain data and plain functions, fixed 60 Hz step
+- `src/render/` - Skia drawing, reads world state
+- `src/app/` - expo-router screens
+- `assets/sprites/` - all sprite art
+- `docs/` - ASSETS.md (verified asset facts), PLAYTEST.md (tuning punch-list),
   DECISIONS.md, BLOCKERS.md, BACKLOG.md
