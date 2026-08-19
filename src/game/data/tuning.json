@@ -96,6 +96,9 @@
   },
   "floor": {
     "tiles": ["tile_0042", "tile_0048", "tile_0049"],
-    "weights": [0.005, 0.99, 0.005]
+    "weights": [0.008, 0.5, 0.492],
+    "tint": "#1b0f2e55",
+    "vignette": "#07060cc4",
+    "vignetteRadius": 0.78
   }
 }

@@ -1,60 +1,80 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { AWAKENED_STARS, MAX_STARS } from '../game/kinds.ts';
 import { ITEMS } from '../game/systems/items.ts';
+import { Frame } from './PixelUi.tsx';
+import { COLORS, MONO } from './theme.ts';
 
 function StarBar({ owned, color }: { owned: number; color: string }) {
   const pips = [];
   for (let i = 0; i < MAX_STARS; i++) {
     const filled = i < Math.min(owned + 1, MAX_STARS);
     pips.push(
-      <View
-        key={i}
-        style={[styles.pip, filled ? { backgroundColor: color } : styles.pipEmpty]}
-      />,
+      <View key={i} style={[styles.pip, filled ? { backgroundColor: color } : styles.pipEmpty]} />,
     );
   }
   return <View style={styles.pipRow}>{pips}</View>;
 }
 
 export function LevelUpOverlay({
+  level,
   offer,
   stars,
   onPick,
 }: {
+  level: number;
   offer: number[];
   stars: number[];
   onPick: (slot: number) => void;
 }) {
   return (
     <View style={styles.backdrop}>
-      <Text style={styles.title}>LEVEL UP</Text>
-      <Text style={styles.subtitle}>Take one</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>LEVEL UP</Text>
+        <Frame outline={COLORS.ink} fill={COLORS.stone} innerStyle={styles.levelChip}>
+          <Text style={styles.levelText}>LV {level}</Text>
+        </Frame>
+        <Text style={styles.subtitle}>CHOOSE ONE</Text>
+      </View>
+
       <View style={styles.row}>
         {offer.map((itemIndex, slot) => {
           if (itemIndex < 0) return null;
           const item = ITEMS[itemIndex];
           const owned = stars[itemIndex] ?? 0;
           const awakening = owned >= MAX_STARS;
+          const accent = awakening ? COLORS.gold : item.color;
           return (
             <Pressable
               key={slot}
-              style={[styles.card, { borderColor: item.color }]}
+              style={({ pressed }) => [styles.cardWrap, pressed ? styles.pressed : null]}
               onPress={() => onPick(slot)}
+              accessibilityRole="button"
             >
-              <View style={[styles.banner, { backgroundColor: item.color }]}>
-                <Text style={styles.bannerText}>
-                  {awakening ? 'AWAKEN' : owned === 0 ? 'NEW' : `STAR ${owned + 1}`}
-                </Text>
-              </View>
-              <View style={[styles.crest, { backgroundColor: item.color }]} />
-              <Text style={[styles.name, { color: item.color }]} numberOfLines={3}>
-                {item.name}
-              </Text>
-              <StarBar owned={awakening ? MAX_STARS : owned} color={item.color} />
-              <Text style={styles.description} numberOfLines={6}>
-                {awakening ? item.awaken : item.star}
-              </Text>
-              {owned >= AWAKENED_STARS && <Text style={styles.maxed}>MAXED</Text>}
+              <Frame outline={accent} fill={COLORS.stone} style={styles.card} innerStyle={styles.cardBody}>
+                <View style={[styles.banner, { backgroundColor: accent }]}>
+                  <Text style={styles.bannerText}>
+                    {awakening ? 'AWAKEN' : owned === 0 ? 'NEW' : `STAR ${owned + 1}`}
+                  </Text>
+                </View>
+                <View style={styles.cardContent}>
+                  <Frame
+                    outline={COLORS.ink}
+                    fill={COLORS.stoneDeep}
+                    sunken
+                    innerStyle={styles.crestPlate}
+                  >
+                    <View style={[styles.crest, { backgroundColor: accent }]} />
+                  </Frame>
+                  <Text style={[styles.name, { color: accent }]} numberOfLines={3}>
+                    {item.name}
+                  </Text>
+                  <StarBar owned={awakening ? MAX_STARS : owned} color={accent} />
+                  <Text style={styles.description} numberOfLines={7}>
+                    {awakening ? item.awaken : item.star}
+                  </Text>
+                  {owned >= AWAKENED_STARS && <Text style={styles.maxed}>MAXED</Text>}
+                </View>
+              </Frame>
             </Pressable>
           );
         })}
@@ -70,37 +90,31 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#0d0d12f2',
+    backgroundColor: COLORS.scrim,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 10,
-  },
-  title: { color: '#5ee9a0', fontSize: 30, fontWeight: 'bold', letterSpacing: 3 },
-  subtitle: { color: '#9a9aa8', fontSize: 13, marginTop: 2, marginBottom: 18 },
-  row: { flexDirection: 'row', alignSelf: 'stretch', gap: 8 },
-  card: {
-    flex: 1,
-    minHeight: 260,
-    backgroundColor: '#24242e',
-    borderRadius: 14,
-    borderWidth: 2,
+    justifyContent: 'flex-end',
     paddingHorizontal: 8,
-    paddingBottom: 12,
-    alignItems: 'center',
-    overflow: 'hidden',
+    paddingBottom: 40,
   },
-  banner: {
-    alignSelf: 'stretch',
-    marginHorizontal: -8,
-    paddingVertical: 4,
-    alignItems: 'center',
-  },
-  bannerText: { color: '#16161d', fontSize: 10, fontWeight: 'bold', letterSpacing: 1 },
-  crest: { width: 34, height: 34, borderRadius: 17, marginTop: 14, marginBottom: 10 },
-  name: { fontSize: 14, fontWeight: 'bold', textAlign: 'center' },
-  pipRow: { flexDirection: 'row', gap: 3, marginTop: 8, marginBottom: 10 },
-  pip: { width: 8, height: 8, borderRadius: 2 },
-  pipEmpty: { backgroundColor: '#3a3a48' },
-  description: { color: '#9a9aa8', fontSize: 11, textAlign: 'center', lineHeight: 15 },
-  maxed: { color: '#5ee9a0', fontSize: 10, fontWeight: 'bold', marginTop: 8, letterSpacing: 1 },
+  header: { alignItems: 'center', marginBottom: 16 },
+  title: { color: COLORS.gold, fontFamily: MONO, fontSize: 28, fontWeight: 'bold', letterSpacing: 5 },
+  levelChip: { paddingHorizontal: 10, paddingVertical: 2, marginTop: 8 },
+  levelText: { color: COLORS.parchment, fontFamily: MONO, fontSize: 12, letterSpacing: 2 },
+  subtitle: { color: COLORS.muted, fontFamily: MONO, fontSize: 10, letterSpacing: 3, marginTop: 8 },
+  row: { flexDirection: 'row', alignSelf: 'stretch', gap: 6 },
+  cardWrap: { flex: 1 },
+  pressed: { transform: [{ translateY: 2 }] },
+  card: { flex: 1 },
+  cardBody: { flex: 1 },
+  banner: { alignSelf: 'stretch', paddingVertical: 3, alignItems: 'center' },
+  bannerText: { color: COLORS.ink, fontFamily: MONO, fontSize: 9, fontWeight: 'bold', letterSpacing: 1 },
+  cardContent: { flex: 1, alignItems: 'center', paddingHorizontal: 6, paddingVertical: 10 },
+  crestPlate: { padding: 4, marginTop: 12, marginBottom: 8 },
+  crest: { width: 28, height: 28 },
+  name: { fontFamily: MONO, fontSize: 12, fontWeight: 'bold', textAlign: 'center', letterSpacing: 0.5 },
+  pipRow: { flexDirection: 'row', gap: 3, marginTop: 8, marginBottom: 8 },
+  pip: { width: 8, height: 8 },
+  pipEmpty: { backgroundColor: COLORS.stoneRaised },
+  description: { color: COLORS.parchment, fontSize: 11, textAlign: 'center', lineHeight: 15 },
+  maxed: { color: COLORS.gold, fontFamily: MONO, fontSize: 9, fontWeight: 'bold', marginTop: 8, letterSpacing: 2 },
 });

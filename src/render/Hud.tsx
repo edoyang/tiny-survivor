@@ -1,7 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AWAKENED_STARS } from '../game/kinds.ts';
+import { AWAKENED_STARS, BOSS_FINAL } from '../game/kinds.ts';
 import { ITEMS } from '../game/systems/items.ts';
+import { Frame, SegmentBar } from './PixelUi.tsx';
+import { COLORS, MONO } from './theme.ts';
 
 export type HudSnapshot = {
   status: number;
@@ -15,7 +17,12 @@ export type HudSnapshot = {
   seconds: number;
   offer: string;
   stars: string;
+  bossHp: number;
+  bossMaxHp: number;
+  bossKind: number;
 };
+
+const LOW_HP_RATIO = 0.34;
 
 export function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -37,100 +44,167 @@ export function Hud({
   stars: number[];
 }) {
   const insets = useSafeAreaInsets();
+  const hpRatio = snap.hp / snap.maxHp;
   return (
-    <View pointerEvents="box-none" style={[styles.root, { paddingTop: insets.top + 8 }]}>
-      <View style={styles.topRow} pointerEvents="box-none">
-        <View style={styles.bars} pointerEvents="none">
-          <View style={styles.barTrack}>
-            <View
-              style={[styles.barFill, styles.hpFill, { width: `${(100 * snap.hp) / snap.maxHp}%` }]}
-            />
-            <Text style={styles.barText}>
-              {snap.hp}/{snap.maxHp}
-              {snap.shield > 0 ? ` +${snap.shield}` : ''}
-            </Text>
+    <>
+      {hpRatio <= LOW_HP_RATIO && (
+        <View pointerEvents="none" style={styles.vignetteOuter}>
+          <View style={styles.vignetteInner} />
+        </View>
+      )}
+      <View pointerEvents="box-none" style={[styles.root, { paddingTop: insets.top }]}>
+        <SegmentBar
+          ratio={snap.xp / snap.xpToNext}
+          color={COLORS.xp}
+          track={COLORS.xpDeep}
+          height={10}
+          segments={10}
+        />
+
+        <View style={styles.body} pointerEvents="box-none">
+          <View style={styles.topRow} pointerEvents="box-none">
+            <Frame outline={COLORS.ink} fill={COLORS.stone} innerStyle={styles.levelChip}>
+              <Text style={styles.levelLabel}>LV</Text>
+              <Text style={styles.levelValue}>{snap.level}</Text>
+            </Frame>
+
+            <View style={styles.hpColumn} pointerEvents="none">
+              <SegmentBar
+                ratio={hpRatio}
+                color={COLORS.blood}
+                track={COLORS.bloodDeep}
+                height={20}
+                segments={10}
+              >
+                <Text style={styles.barText}>
+                  {snap.hp}/{snap.maxHp}
+                  {snap.shield > 0 ? ` +${snap.shield}` : ''}
+                </Text>
+              </SegmentBar>
+            </View>
+
+            <Pressable onPress={onTogglePause} hitSlop={8} accessibilityRole="button">
+              <Frame outline={COLORS.ink} fill={COLORS.stoneRaised} innerStyle={styles.pauseButton}>
+                {paused ? (
+                  <View style={styles.playGlyph} />
+                ) : (
+                  <View style={styles.pauseGlyph}>
+                    <View style={styles.pauseBar} />
+                    <View style={styles.pauseBar} />
+                  </View>
+                )}
+              </Frame>
+            </Pressable>
           </View>
-          <View style={styles.barTrack}>
-            <View
-              style={[
-                styles.barFill,
-                styles.xpFill,
-                { width: `${Math.min(100, (100 * snap.xp) / snap.xpToNext)}%` },
-              ]}
-            />
-            <Text style={styles.barText}>Lv {snap.level}</Text>
+
+          <View style={styles.clockRow} pointerEvents="none">
+            <Frame outline={COLORS.ink} fill={COLORS.stoneDeep} sunken innerStyle={styles.clockPlate}>
+              <Text style={styles.clockText}>{formatTime(snap.seconds)}</Text>
+            </Frame>
+            <Frame outline={COLORS.ink} fill={COLORS.stoneDeep} sunken innerStyle={styles.killPlate}>
+              <Text style={styles.killText}>{snap.kills} KILLS</Text>
+            </Frame>
           </View>
-          <View style={styles.statsRow}>
-            <Text style={styles.stat}>{formatTime(snap.seconds)}</Text>
-            <Text style={styles.stat}>{snap.kills} kills</Text>
+
+          {snap.bossMaxHp > 0 && (
+            <View style={styles.bossBlock} pointerEvents="none">
+              <Text style={styles.bossLabel}>
+                {snap.bossKind === BOSS_FINAL ? 'BOSS' : 'MINI BOSS'}
+              </Text>
+              <SegmentBar
+                ratio={snap.bossHp / snap.bossMaxHp}
+                color={COLORS.blood}
+                track={COLORS.bloodDeep}
+                height={14}
+                segments={20}
+              />
+            </View>
+          )}
+
+          <View style={styles.gearRow} pointerEvents="none">
+            {ownedItems.map((itemIndex) => {
+              const item = ITEMS[itemIndex];
+              const owned = stars[itemIndex];
+              return (
+                <Frame
+                  key={item.id}
+                  outline={item.color}
+                  fill={COLORS.stoneDeep}
+                  innerStyle={styles.gearChip}
+                >
+                  <Text style={[styles.gearStars, { color: item.color }]}>
+                    {owned >= AWAKENED_STARS ? 'A' : owned}
+                  </Text>
+                </Frame>
+              );
+            })}
           </View>
         </View>
-        <Pressable style={styles.pauseButton} onPress={onTogglePause}>
-          <Text style={styles.pauseText}>{paused ? '>' : '||'}</Text>
-        </Pressable>
       </View>
-      <View style={styles.itemRow} pointerEvents="none">
-        {ownedItems.map((itemIndex) => {
-          const item = ITEMS[itemIndex];
-          const owned = stars[itemIndex];
-          return (
-            <View key={item.id} style={[styles.itemChip, { borderColor: item.color }]}>
-              <View style={[styles.itemDot, { backgroundColor: item.color }]} />
-              <Text style={styles.itemStars}>
-                {owned >= AWAKENED_STARS ? 'A' : owned}
-              </Text>
-            </View>
-          );
-        })}
-      </View>
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
+  root: { position: 'absolute', top: 0, left: 0, right: 0 },
+  body: { paddingHorizontal: 8, paddingTop: 6 },
+  topRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  levelChip: { width: 34, alignItems: 'center', paddingVertical: 2 },
+  levelLabel: { color: COLORS.muted, fontFamily: MONO, fontSize: 8, letterSpacing: 1 },
+  levelValue: { color: COLORS.parchment, fontFamily: MONO, fontSize: 14, fontWeight: 'bold' },
+  hpColumn: { flex: 1 },
+  barText: {
+    color: COLORS.parchment,
+    fontFamily: MONO,
+    fontSize: 10,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  pauseButton: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  pauseGlyph: { flexDirection: 'row', gap: 4 },
+  pauseBar: { width: 4, height: 14, backgroundColor: COLORS.parchment },
+  playGlyph: {
+    width: 0,
+    height: 0,
+    borderTopWidth: 7,
+    borderBottomWidth: 7,
+    borderLeftWidth: 12,
+    borderTopColor: 'transparent',
+    borderBottomColor: 'transparent',
+    borderLeftColor: COLORS.parchment,
+    marginLeft: 3,
+  },
+  clockRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 6 },
+  clockPlate: { paddingHorizontal: 10, paddingVertical: 1 },
+  clockText: {
+    color: COLORS.parchment,
+    fontFamily: MONO,
+    fontSize: 20,
+    fontWeight: 'bold',
+    letterSpacing: 2,
+  },
+  killPlate: { paddingHorizontal: 8, paddingVertical: 4 },
+  killText: { color: COLORS.muted, fontFamily: MONO, fontSize: 11, letterSpacing: 1 },
+  bossBlock: { marginTop: 8 },
+  bossLabel: {
+    color: COLORS.blood,
+    fontFamily: MONO,
+    fontSize: 9,
+    letterSpacing: 3,
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  gearRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 8 },
+  gearChip: { width: 18, height: 18, alignItems: 'center', justifyContent: 'center' },
+  gearStars: { fontFamily: MONO, fontSize: 10, fontWeight: 'bold' },
+  vignetteOuter: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 12,
+    bottom: 0,
+    borderWidth: 10,
+    borderColor: COLORS.vignette,
   },
-  topRow: { flexDirection: 'row' },
-  bars: { flex: 1, gap: 4 },
-  barTrack: {
-    height: 16,
-    backgroundColor: '#00000088',
-    borderRadius: 8,
-    overflow: 'hidden',
-    justifyContent: 'center',
-  },
-  barFill: { position: 'absolute', left: 0, top: 0, bottom: 0 },
-  hpFill: { backgroundColor: '#e05252' },
-  xpFill: { backgroundColor: '#5e9fe9' },
-  barText: { color: '#e8e4d8', fontSize: 10, textAlign: 'center', fontWeight: 'bold' },
-  statsRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 },
-  stat: { color: '#e8e4d8', fontSize: 12, fontWeight: 'bold' },
-  pauseButton: {
-    marginLeft: 12,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#00000088',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pauseText: { color: '#e8e4d8', fontSize: 14, fontWeight: 'bold' },
-  itemRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 6 },
-  itemChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-    backgroundColor: '#00000088',
-  },
-  itemDot: { width: 6, height: 6, borderRadius: 3 },
-  itemStars: { color: '#e8e4d8', fontSize: 10, fontWeight: 'bold' },
+  vignetteInner: { flex: 1, borderWidth: 12, borderColor: 'rgba(207,61,78,0.16)' },
 });

@@ -1,17 +1,30 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import classes from '../game/data/classes.json' with { type: 'json' };
-import { STATUS_DEAD, STATUS_LEVELUP, STATUS_WON } from '../game/kinds.ts';
+import { BOSS_NONE, STATUS_DEAD, STATUS_LEVELUP, STATUS_WON } from '../game/kinds.ts';
 import { createWorld, type World } from '../game/state.ts';
 import { ITEMS, PRESETS } from '../game/systems/items.ts';
 import { applyItemPick } from '../game/systems/leveling.ts';
 import { GameCanvas } from '../render/GameCanvas.tsx';
 import { Hud, type HudSnapshot } from '../render/Hud.tsx';
 import { LevelUpOverlay } from '../render/LevelUpOverlay.tsx';
+import { Frame, PixelButton } from '../render/PixelUi.tsx';
 import { ResultsOverlay } from '../render/ResultsOverlay.tsx';
+import { COLORS, MONO } from '../render/theme.ts';
 
 function takeSnapshot(world: World): HudSnapshot {
+  let bossHp = 0;
+  let bossMaxHp = 0;
+  let bossKind = BOSS_NONE;
+  for (let i = 0; i < world.enemies.count; i++) {
+    const enemy = world.enemies.items[i];
+    if (enemy.boss !== BOSS_NONE && enemy.maxHp > bossMaxHp) {
+      bossHp = Math.ceil(enemy.hp);
+      bossMaxHp = enemy.maxHp;
+      bossKind = enemy.boss;
+    }
+  }
   return {
     status: world.status,
     hp: Math.ceil(world.player.hp),
@@ -24,6 +37,9 @@ function takeSnapshot(world: World): HudSnapshot {
     seconds: Math.floor(world.time),
     offer: `${world.itemOffer[0]},${world.itemOffer[1]},${world.itemOffer[2]}`,
     stars: world.itemStars.join(','),
+    bossHp,
+    bossMaxHp,
+    bossKind,
   };
 }
 
@@ -39,7 +55,9 @@ function sameSnapshot(a: HudSnapshot, b: HudSnapshot): boolean {
     a.kills === b.kills &&
     a.seconds === b.seconds &&
     a.offer === b.offer &&
-    a.stars === b.stars
+    a.stars === b.stars &&
+    a.bossHp === b.bossHp &&
+    a.bossMaxHp === b.bossMaxHp
   );
 }
 
@@ -81,7 +99,7 @@ export default function Game() {
   const runOver = snap.status === STATUS_DEAD || snap.status === STATUS_WON;
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#16161d' }}>
+    <View style={styles.root}>
       <GameCanvas world={world} paused={paused} />
       <Hud
         snap={snap}
@@ -91,13 +109,22 @@ export default function Game() {
         stars={stars}
       />
       {pausedUi && !runOver && (
-        <Pressable style={styles.pauseBackdrop} onPress={togglePause}>
-          <Text style={styles.pausedTitle}>PAUSED</Text>
-          <Text style={styles.pausedHint}>Tap anywhere to resume</Text>
-        </Pressable>
+        <View style={styles.pauseBackdrop}>
+          <Frame outline={COLORS.gold} fill={COLORS.stone} innerStyle={styles.pausePanel}>
+            <Text style={styles.pausedTitle}>PAUSED</Text>
+            <View style={styles.pauseRule} />
+            <Text style={styles.pausedStat}>LEVEL {snap.level}</Text>
+            <Text style={styles.pausedStat}>{snap.kills} KILLS</Text>
+            <View style={styles.pauseActions}>
+              <PixelButton label="RESUME" onPress={togglePause} primary />
+              <PixelButton label="QUIT TO MENU" onPress={() => router.dismissTo('/')} />
+            </View>
+          </Frame>
+        </View>
       )}
       {snap.status === STATUS_LEVELUP && (
         <LevelUpOverlay
+          level={snap.level}
           offer={offer}
           stars={stars}
           onPick={(slot) => {
@@ -118,16 +145,34 @@ export default function Game() {
 }
 
 const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: COLORS.ink },
   pauseBackdrop: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#16161dcc',
+    backgroundColor: COLORS.scrim,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 32,
   },
-  pausedTitle: { color: '#e8e4d8', fontSize: 28, fontWeight: 'bold', letterSpacing: 3 },
-  pausedHint: { color: '#9a9aa8', fontSize: 13, marginTop: 8 },
+  pausePanel: { paddingHorizontal: 24, paddingVertical: 20, alignItems: 'stretch', minWidth: 220 },
+  pausedTitle: {
+    color: COLORS.gold,
+    fontFamily: MONO,
+    fontSize: 26,
+    fontWeight: 'bold',
+    letterSpacing: 5,
+    textAlign: 'center',
+  },
+  pauseRule: { height: 2, backgroundColor: COLORS.goldDeep, marginVertical: 12 },
+  pausedStat: {
+    color: COLORS.muted,
+    fontFamily: MONO,
+    fontSize: 12,
+    letterSpacing: 1,
+    textAlign: 'center',
+  },
+  pauseActions: { gap: 8, marginTop: 18 },
 });

@@ -1,5 +1,17 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { formatTime, type HudSnapshot } from './Hud.tsx';
+import { Frame, PixelButton } from './PixelUi.tsx';
+import { COLORS, MONO } from './theme.ts';
+
+function StatRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.statRow}>
+      <Text style={styles.statLabel}>{label}</Text>
+      <View style={styles.statLeader} />
+      <Text style={styles.statValue}>{value}</Text>
+    </View>
+  );
+}
 
 export function ResultsOverlay({
   snap,
@@ -10,19 +22,20 @@ export function ResultsOverlay({
   won: boolean;
   onRetry: () => void;
 }) {
+  const accent = won ? COLORS.gold : COLORS.blood;
   return (
     <View style={styles.backdrop}>
-      <Text style={[styles.title, won ? styles.wonTitle : styles.lostTitle]}>
-        {won ? 'BOSS DOWN' : 'YOU FELL'}
-      </Text>
-      <View style={styles.statsBox}>
-        <Text style={styles.stat}>Survived {formatTime(snap.seconds)}</Text>
-        <Text style={styles.stat}>{snap.kills} kills</Text>
-        <Text style={styles.stat}>Level {snap.level}</Text>
-      </View>
-      <Pressable style={styles.retryButton} onPress={onRetry}>
-        <Text style={styles.retryText}>GO AGAIN</Text>
-      </Pressable>
+      <Frame outline={accent} fill={COLORS.stone} style={styles.panel} innerStyle={styles.panelBody}>
+        <View style={[styles.titlePlate, { backgroundColor: accent }]}>
+          <Text style={styles.title}>{won ? 'BOSS DOWN' : 'YOU FELL'}</Text>
+        </View>
+        <View style={styles.stats}>
+          <StatRow label="SURVIVED" value={formatTime(snap.seconds)} />
+          <StatRow label="KILLS" value={String(snap.kills)} />
+          <StatRow label="LEVEL" value={String(snap.level)} />
+        </View>
+        <PixelButton label="GO AGAIN" onPress={onRetry} primary labelStyle={styles.retryLabel} />
+      </Frame>
     </View>
   );
 }
@@ -34,21 +47,19 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#16161dee',
+    backgroundColor: COLORS.scrim,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    paddingHorizontal: 24,
   },
-  title: { fontSize: 32, fontWeight: 'bold', letterSpacing: 3 },
-  wonTitle: { color: '#5ee9a0' },
-  lostTitle: { color: '#e05252' },
-  statsBox: { marginVertical: 28, alignItems: 'center', gap: 8 },
-  stat: { color: '#e8e4d8', fontSize: 18 },
-  retryButton: {
-    backgroundColor: '#5ee9a0',
-    borderRadius: 12,
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-  },
-  retryText: { color: '#16161d', fontSize: 18, fontWeight: 'bold', letterSpacing: 1 },
+  panel: { alignSelf: 'stretch' },
+  panelBody: { padding: 18 },
+  titlePlate: { paddingVertical: 8, alignItems: 'center' },
+  title: { color: COLORS.ink, fontFamily: MONO, fontSize: 24, fontWeight: 'bold', letterSpacing: 4 },
+  stats: { marginVertical: 22, gap: 12 },
+  statRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
+  statLabel: { color: COLORS.muted, fontFamily: MONO, fontSize: 12, letterSpacing: 2 },
+  statLeader: { flex: 1, height: 2, backgroundColor: COLORS.stoneRaised, marginBottom: 4 },
+  statValue: { color: COLORS.parchment, fontFamily: MONO, fontSize: 18, fontWeight: 'bold' },
+  retryLabel: { fontSize: 16, letterSpacing: 3 },
 });

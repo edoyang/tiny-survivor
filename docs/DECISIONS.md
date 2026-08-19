@@ -154,3 +154,44 @@ Every place one reading of the spec was picked over another.
   delayed impact needs scheduled events in the sim; the 0.6 s burst animation
   sized to the full blast was judged enough to read. Logged rather than
   silently skipped.
+
+## UI art direction pass (post-gear-rework)
+
+- **The interface is built as a pixel-arcade panel system, not a flat card
+  layout.** Every surface is a bevelled frame: a 2 px ink outline, then a 2 px
+  border with a light top/left and a dark bottom/right (`Frame` in
+  `src/render/PixelUi.tsx`), which is the flat-shaded stand-in for a 9-slice
+  panel. Zero border radius anywhere — rounded corners on a 16 px pixel-art
+  game read as an app, not a game.
+- **Chrome type is monospace, uppercase, letter-spaced; prose stays in the
+  system face.** No pixel font file could be fetched (see BLOCKERS), and
+  monospace numerals are the genre convention for HUD readouts anyway. Item
+  descriptions and blurbs keep the system face because mono at 11 px hurts
+  reading.
+- **Gold `#f2b33d` replaces the mint `#5ee9a0` as the primary accent.** Gold on
+  dark stone is the survivor-like/arcade convention; the mint read as a
+  productivity-app accent colour.
+- **Each class owns a colour** (`CLASS_COLORS` in `src/render/theme.ts`:
+  violet wizard, steel knight, copper dwarf, jade priest). The class card and
+  its build-preview panel are outlined in it, so the roster reads as four
+  heroes rather than four grey boxes.
+- **UI tokens live in `src/render/theme.ts`, not `tuning.json`.** `tuning.json`
+  is the sim's feel file; palette, bevel width and type sizes are chrome, and
+  putting them there would mix two audiences. Feel numbers that affect what the
+  *world* looks like (floor tint, vignette) did go into `tuning.json`.
+- **Class cards show HP/SPD/RTE pips derived from `classes.json`** (maxHp,
+  moveSpeed, 1/cooldown, each normalised across the four classes). Nothing is
+  invented — if the JSON changes the pips change.
+- **Level-up cards are anchored to the bottom of the screen.** They are the one
+  overlay you must hit under pressure, and the bottom third is the reachable
+  zone in one-thumb portrait play.
+- **The HUD hierarchy is: XP strip on the top edge, then level + HP + pause,
+  then the run clock centred, then the boss bar.** The clock is the number a
+  survivor-like player reads most, so it is the largest element on screen.
+- **`MenuSprite` draws hero and weapon in one Skia canvas.** It was one canvas
+  per sprite, so the menu held eight live WebGL contexts on web (a logged
+  blocker); it now holds four.
+- **The floor tile weights were a bug, not a taste call.** `tile_0048` is a
+  single flat colour (all 256 pixels `#eaa56c`, verified by decoding the PNG)
+  and it was weighted 0.99, so the "endless dungeon" rendered as a plain orange
+  field. `tile_0049` — the same base with sparse specks — is now half the mix.

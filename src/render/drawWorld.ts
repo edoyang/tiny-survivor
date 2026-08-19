@@ -2,7 +2,9 @@ import {
   BlendMode,
   FilterMode,
   MipmapMode,
+  PaintStyle,
   Skia,
+  TileMode,
   type SkCanvas,
   type SkHostRect,
   type SkImage,
@@ -47,8 +49,13 @@ export type RenderContext = {
   floorSrcs: SkRect[];
   floorXforms: SkRSXform[];
   spritePaint: SkPaint;
+  floorTintPaint: SkPaint;
+  vignettePaint: SkPaint;
+  screenRect: SkRect;
   joystickBasePaint: SkPaint;
+  joystickRingPaint: SkPaint;
   joystickKnobPaint: SkPaint;
+  joystickKnobEdgePaint: SkPaint;
   bounds: SkHostRect;
   heroBody: SkImage;
   heroWeapon: SkImage;
@@ -158,10 +165,30 @@ export function createRenderContext(
     effectSrcs[i] = effectFrames[0][0];
     effectXforms[i] = Skia.RSXform(0, 0, 0, 0);
   }
+  const floorTintPaint = Skia.Paint();
+  floorTintPaint.setColor(Skia.Color(tuning.floor.tint));
+  const vignettePaint = Skia.Paint();
+  vignettePaint.setShader(
+    Skia.Shader.MakeRadialGradient(
+      { x: screenWidth / 2, y: screenHeight / 2 },
+      Math.max(screenWidth, screenHeight) * tuning.floor.vignetteRadius,
+      [Skia.Color('#00000000'), Skia.Color(tuning.floor.vignette)],
+      [0.45, 1],
+      TileMode.Clamp,
+    ),
+  );
   const joystickBasePaint = Skia.Paint();
-  joystickBasePaint.setColor(Skia.Color('#ffffff22'));
+  joystickBasePaint.setColor(Skia.Color('#07060c66'));
+  const joystickRingPaint = Skia.Paint();
+  joystickRingPaint.setColor(Skia.Color('#f3e9d255'));
+  joystickRingPaint.setStyle(PaintStyle.Stroke);
+  joystickRingPaint.setStrokeWidth(2);
   const joystickKnobPaint = Skia.Paint();
-  joystickKnobPaint.setColor(Skia.Color('#ffffff55'));
+  joystickKnobPaint.setColor(Skia.Color('#f3e9d2bb'));
+  const joystickKnobEdgePaint = Skia.Paint();
+  joystickKnobEdgePaint.setColor(Skia.Color('#07060cdd'));
+  joystickKnobEdgePaint.setStyle(PaintStyle.Stroke);
+  joystickKnobEdgePaint.setStrokeWidth(2);
   return {
     atlas,
     floorLayout: generateFloorLayout(tuning.floor.weights),
@@ -175,8 +202,13 @@ export function createRenderContext(
     floorSrcs,
     floorXforms,
     spritePaint,
+    floorTintPaint,
+    vignettePaint,
+    screenRect: Skia.XYWHRect(0, 0, screenWidth, screenHeight),
     joystickBasePaint,
+    joystickRingPaint,
     joystickKnobPaint,
+    joystickKnobEdgePaint,
     bounds: Skia.XYWHRect(0, 0, screenWidth, screenHeight),
     heroBody: hero.body,
     heroWeapon: hero.weapon,
@@ -266,6 +298,11 @@ export function drawWorld(
     undefined,
     NEAREST,
   );
+  canvas.restore();
+  canvas.drawRect(ctx.screenRect, ctx.floorTintPaint);
+  canvas.save();
+  canvas.scale(ctx.scale, ctx.scale);
+  canvas.translate(ctx.viewWidth / 2 - camX, ctx.viewHeight / 2 - camY);
 
   const cullMinX = camX - ctx.viewWidth / 2 - CULL_MARGIN;
   const cullMaxX = camX + ctx.viewWidth / 2 + CULL_MARGIN;
@@ -494,12 +531,20 @@ export function drawWorld(
 
   canvas.restore();
 
+  canvas.drawRect(ctx.screenRect, ctx.vignettePaint);
+
   if (joystick.active) {
     canvas.drawCircle(
       joystick.originX,
       joystick.originY,
       tuning.joystick.radius,
       ctx.joystickBasePaint,
+    );
+    canvas.drawCircle(
+      joystick.originX,
+      joystick.originY,
+      tuning.joystick.radius,
+      ctx.joystickRingPaint,
     );
     let dx = joystick.x - joystick.originX;
     let dy = joystick.y - joystick.originY;
@@ -513,6 +558,12 @@ export function drawWorld(
       joystick.originY + dy,
       tuning.joystick.knobRadius,
       ctx.joystickKnobPaint,
+    );
+    canvas.drawCircle(
+      joystick.originX + dx,
+      joystick.originY + dy,
+      tuning.joystick.knobRadius,
+      ctx.joystickKnobEdgePaint,
     );
   }
 }

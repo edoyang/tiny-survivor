@@ -351,3 +351,30 @@ raise `orb.damage` to 8 or shorten `missile`'s class cooldown in
   scale (32 px art next to 16 px heroes), orb at 0.2 (100 px art), axe spins
   at 540 deg/s visually. The missile is a drawn 6 px bolt, colour
   `projectiles.missileColor`.
+
+## UI art direction pass — numbers to retune
+
+Chrome tokens (`src/render/theme.ts`): palette, `BEVEL` (2 px border width),
+`CLASS_COLORS`. Changing `COLORS.gold` restyles every primary action at once.
+
+World-look numbers, all in `src/game/data/tuning.json` under `floor`:
+
+- **`floor.weights` = `[0.008, 0.5, 0.492]`** for `[tile_0042, tile_0048,
+  tile_0049]`. `tile_0048` is a flat colour, `tile_0049` is the same colour
+  with sparse specks, `tile_0042` is the decorative crate/brick tile and reads
+  as scattered light-blue debris. Raise index 0 for more props, lower it if the
+  blue blocks look like litter.
+- **`floor.tint` = `#1b0f2e55`** — a translucent purple-black drawn over the
+  floor only, so entities keep full brightness. Raise the alpha (last two hex
+  digits) for a darker dungeon; `00` disables it.
+- **`floor.vignette` = `#07060cc4`, `floor.vignetteRadius` = `0.78`** — a
+  radial darkening from the screen centre. Lower the alpha or raise the radius
+  if the edges feel too closed in.
+- **Low-HP warning frame** triggers under 34% HP (`LOW_HP_RATIO` in
+  `src/render/Hud.tsx`). It is a red screen border, not a soft vignette —
+  React Native has no gradient without a dependency.
+
+Unverified, as always: this was checked in a desktop browser at a 390x844
+viewport, never on a phone. Touch target sizes follow the 44 dp minimum
+(`PixelButton` sets `minHeight: 44`), but thumb reach and how the level-up
+cards feel mid-fight are your call.

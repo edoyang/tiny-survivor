@@ -21,3 +21,11 @@ One line per idea. Nothing here is scheduled.
 - Persist "Skip confirmation" (and any future settings) across restarts.
 - Silence the `SkPath.moveTo/lineTo/close` deprecation warnings by moving
   `makeGemImage` to `Skia.PathBuilder`.
+- Splash screen and app icon are still Expo's blue default; the game is now
+  dark stone and gold. Needs an icon asset, so it was not touched.
+- The Priest's tinted wand is untinted in menu portraits (MenuSprite draws the
+  raw image; the tint lives in the renderer's weapon paint).
+- Results screen could list the gear taken during the run; the HUD snapshot
+  already carries the star array.
+- A "how to play" first-run card (movement, auto-attack, gem pickup) instead of
+  the one-line hint on the class select screen.

@@ -43,3 +43,18 @@ Missing assets, unfixable failures, anything shipped disabled.
 - **"Skip confirmation" does not survive an app restart.** It is a module
   variable; persisting it needs a storage dependency (AsyncStorage or
   expo-sqlite), which was not added without being asked.
+
+## UI art direction pass
+
+- **No pixel font.** The interface uses the platform monospace face
+  (`MONO` in `src/render/theme.ts`) because no font file could be fetched —
+  this environment's egress proxy blocks font and asset hosts. A real bitmap
+  face (m5x7, Press Start 2P or similar) dropped into `assets/fonts/` and
+  loaded with `expo-font` would finish the look; only `MONO` has to change.
+- **Design reference sites are blocked by the egress proxy.** Web *search*
+  works, `WebFetch` does not: gameuidatabase.com, wikipedia.org and every
+  design blog returned `EGRESS_BLOCKED`. The redesign therefore follows genre
+  convention plus search-result summaries, not a specific studied reference.
+- **Items still have no icons**, so the level-up card crest and the HUD gear
+  chips are coloured blocks. This is the single biggest remaining gap: a build
+  is currently identified by colour and name only.
